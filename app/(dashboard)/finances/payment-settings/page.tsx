@@ -1,0 +1,48 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser, isManager } from "@/lib/permissions";
+import { PaymentSettingsForm } from "@/components/finance/payment-settings-form";
+import { PropertyPicker } from "@/components/finance/property-picker";
+
+export const metadata = { title: "Payment settings — Building Maintenance" };
+
+export default async function PaymentSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ property?: string }>;
+}) {
+  const user = await getCurrentUser();
+  if (!user || !isManager(user)) redirect("/dashboard");
+
+  const supabase = await createClient();
+  const { data: properties } = await supabase.from("properties").select("id, name").order("name");
+  if (!properties?.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        Add a property first.
+      </div>
+    );
+  }
+
+  const { property } = await searchParams;
+  const propertyId = property && properties.some((p) => p.id === property) ? property : properties[0].id;
+
+  const { data: settings } = await supabase
+    .from("property_payment_settings")
+    .select("*")
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  return (
+    <div className="mx-auto max-w-xl space-y-4">
+      <h1 className="text-xl font-bold text-slate-900">Payment settings</h1>
+      <PropertyPicker properties={properties} basePath="/finances/payment-settings" activeId={propertyId} />
+      <p className="text-sm text-slate-500">
+        These details are shown to residents on their &quot;My Dues&quot; page, with a scannable UPI QR code.
+      </p>
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <PaymentSettingsForm propertyId={propertyId} settings={settings ?? null} />
+      </div>
+    </div>
+  );
+}
