@@ -12,7 +12,7 @@ import {
 export function ForgotPasswordForm() {
   const [state, action] = useActionState<AuthFormState, FormData>(
     requestPasswordReset,
-    {},
+    {}
   );
   if (state.success) return <FormSuccess message={state.message} />;
   return (

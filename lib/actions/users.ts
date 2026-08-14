@@ -9,7 +9,7 @@ import type { ActionState } from "@/lib/actions/properties";
 
 export async function grantGlobalRole(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = grantRoleSchema.safeParse({
     userId: formData.get("userId"),
@@ -50,7 +50,7 @@ export async function grantGlobalRole(
 
 export async function revokeGlobalRole(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = grantRoleSchema.safeParse({
     userId: formData.get("userId"),

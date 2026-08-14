@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { dueStatus, outstandingBalance, formatPeriod, formatCurrency } from "@/lib/finance/dues";
+import {
+  dueStatus,
+  outstandingBalance,
+  formatPeriod,
+  formatCurrency,
+} from "@/lib/finance/dues";
 import { buildUpiUri } from "@/lib/finance/upi";
-import { paymentSettingsSchema, expenseSchema, periodSchema } from "@/lib/validation";
+import {
+  paymentSettingsSchema,
+  expenseSchema,
+  periodSchema,
+} from "@/lib/validation";
 
 describe("dueStatus", () => {
   it("classifies paid/partial/pending correctly", () => {
@@ -34,14 +43,21 @@ describe("formatPeriod / formatCurrency", () => {
 
 describe("buildUpiUri", () => {
   it("includes payee, amount and currency", () => {
-    const uri = buildUpiUri({ vpa: "building@upi", payeeName: "Thripura Sadan", amount: 2500 });
+    const uri = buildUpiUri({
+      vpa: "building@upi",
+      payeeName: "Thripura Sadan",
+      amount: 2500,
+    });
     expect(uri).toContain("upi://pay?");
     expect(uri).toContain("pa=building%40upi");
     expect(uri).toContain("am=2500.00");
     expect(uri).toContain("cu=INR");
   });
   it("omits the amount param when not provided", () => {
-    const uri = buildUpiUri({ vpa: "building@upi", payeeName: "Thripura Sadan" });
+    const uri = buildUpiUri({
+      vpa: "building@upi",
+      payeeName: "Thripura Sadan",
+    });
     expect(uri).not.toContain("am=");
   });
 });

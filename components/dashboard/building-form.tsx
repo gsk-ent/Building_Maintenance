@@ -12,7 +12,7 @@ import {
 export function BuildingForm({ propertyId }: { propertyId: string }) {
   const [state, action] = useActionState<ActionState, FormData>(
     createBuilding,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-3" noValidate>

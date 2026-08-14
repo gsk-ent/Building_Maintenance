@@ -23,7 +23,7 @@ export function ExpenseForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     createExpense,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-3" noValidate>

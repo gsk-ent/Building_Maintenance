@@ -116,7 +116,7 @@ async function unitsForProperty(propertyId: string) {
 
 /** unit_id → resident name(s), for report readability ("Flat 402 — Satya"). */
 async function ownersForProperty(
-  propertyId: string,
+  propertyId: string
 ): Promise<Map<string, string[]>> {
   const supabase = await createClient();
   const units = await unitsForProperty(propertyId);
@@ -137,7 +137,7 @@ async function ownersForProperty(
     .select("user_id, full_name, email")
     .in("user_id", residentUserIds);
   const nameByUser = new Map(
-    (profiles ?? []).map((p) => [p.user_id, p.full_name || p.email]),
+    (profiles ?? []).map((p) => [p.user_id, p.full_name || p.email])
   );
 
   for (const r of residents ?? []) {
@@ -313,7 +313,7 @@ async function ExpenseReport({
     ...new Set(
       (expenses ?? [])
         .map((e) => e.category_id)
-        .filter((id): id is string => !!id),
+        .filter((id): id is string => !!id)
     ),
   ];
   const nameById = new Map<string, string>();
@@ -391,14 +391,14 @@ async function IncomeVsExpenseReport({ propertyId }: { propertyId: string }) {
   for (const d of dues ?? []) {
     incomeByMonth.set(
       d.period,
-      (incomeByMonth.get(d.period) ?? 0) + d.amount_paid,
+      (incomeByMonth.get(d.period) ?? 0) + d.amount_paid
     );
   }
   const expenseByMonth = new Map<string, number>();
   for (const e of expenses ?? []) {
     expenseByMonth.set(
       e.period,
-      (expenseByMonth.get(e.period) ?? 0) + e.amount,
+      (expenseByMonth.get(e.period) ?? 0) + e.amount
     );
   }
   const months = [
@@ -409,8 +409,8 @@ async function IncomeVsExpenseReport({ propertyId }: { propertyId: string }) {
   const max = Math.max(
     1,
     ...months.map((m) =>
-      Math.max(incomeByMonth.get(m) ?? 0, expenseByMonth.get(m) ?? 0),
-    ),
+      Math.max(incomeByMonth.get(m) ?? 0, expenseByMonth.get(m) ?? 0)
+    )
   );
 
   return (

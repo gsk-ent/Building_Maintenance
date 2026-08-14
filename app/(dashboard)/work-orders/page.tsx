@@ -13,7 +13,7 @@ export default async function WorkOrdersPage() {
   const { data: workOrders } = await supabase
     .from("work_orders")
     .select(
-      "id, title, status, scheduled_for, cost_estimate, request_id, created_at",
+      "id, title, status, scheduled_for, cost_estimate, request_id, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(50);

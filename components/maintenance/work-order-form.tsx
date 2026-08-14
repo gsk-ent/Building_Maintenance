@@ -22,7 +22,7 @@ export function WorkOrderForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     createWorkOrder,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-3" noValidate>

@@ -106,7 +106,7 @@ export default async function DuesPage({
           (residentProfiles ?? []).map((p) => [
             p.user_id,
             p.full_name || p.email,
-          ]),
+          ])
         );
       }
       for (const r of residents ?? []) {

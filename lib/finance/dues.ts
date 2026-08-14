@@ -3,7 +3,7 @@ import type { MonthlyDue } from "@/types/database";
 export type DueStatus = "paid" | "partial" | "pending";
 
 export function dueStatus(
-  due: Pick<MonthlyDue, "amount_due" | "amount_paid">,
+  due: Pick<MonthlyDue, "amount_due" | "amount_paid">
 ): DueStatus {
   if (due.amount_paid >= due.amount_due && due.amount_due > 0) return "paid";
   if (due.amount_paid > 0) return "partial";
@@ -11,11 +11,11 @@ export function dueStatus(
 }
 
 export function outstandingBalance(
-  dues: Pick<MonthlyDue, "amount_due" | "amount_paid">[],
+  dues: Pick<MonthlyDue, "amount_due" | "amount_paid">[]
 ): number {
   return dues.reduce(
     (sum, d) => sum + Math.max(0, d.amount_due - d.amount_paid),
-    0,
+    0
   );
 }
 

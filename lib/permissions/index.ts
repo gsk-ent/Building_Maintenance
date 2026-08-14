@@ -39,7 +39,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     roles: (roleRows ?? []).map((r) => r.role),
     isAssigned: relationships.length > 0,
     managesAnyProperty: relationships.some(
-      (r) => r === "manager" || r === "admin",
+      (r) => r === "manager" || r === "admin"
     ),
     isAdminOfAnyProperty: relationships.some((r) => r === "admin"),
   };

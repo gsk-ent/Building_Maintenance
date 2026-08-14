@@ -16,7 +16,7 @@ import type { ActionState } from "@/lib/actions/properties";
 
 export async function updatePaymentSettings(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = paymentSettingsSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -49,7 +49,7 @@ export async function updatePaymentSettings(
       notes: d.notes || null,
       updated_by: user.id,
     },
-    { onConflict: "property_id" },
+    { onConflict: "property_id" }
   );
   if (error) return { errors: { _form: "Could not save payment settings." } };
 
@@ -66,7 +66,7 @@ export async function updatePaymentSettings(
 
 export async function createExpenseCategory(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = expenseCategorySchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -90,7 +90,7 @@ export async function createExpenseCategory(
 
 export async function createExpense(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = expenseSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -141,7 +141,7 @@ export async function createExpense(
  */
 export async function generateDuesForPeriod(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = generateDuesSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -188,7 +188,7 @@ export async function generateDuesForPeriod(
 
 export async function recordDuePayment(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = recordDuePaymentSchema.safeParse({
     dueId: formData.get("dueId"),
@@ -232,7 +232,7 @@ export async function recordDuePayment(
 
 export async function setDueAmount(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = setDueAmountSchema.safeParse({
     dueId: formData.get("dueId"),

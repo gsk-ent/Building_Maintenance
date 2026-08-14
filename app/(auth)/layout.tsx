@@ -18,6 +18,11 @@ export default function AuthLayout({
           </p>
         </div>
         <div className="border-t-4 border-t-gold bg-paper p-6">{children}</div>
+        <p className="label-mono mt-6 text-center text-[9px] leading-relaxed text-teal">
+          © {new Date().getFullYear()} TensorVeda Intelligent Systems Pvt Ltd
+          <br />
+          Building Maintenance Suite · Secured &amp; Access Controlled
+        </p>
       </div>
     </main>
   );

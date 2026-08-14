@@ -14,7 +14,7 @@ const PUBLIC_PATHS = [
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(
-    (p) => pathname === p || (p !== "/" && pathname.startsWith(p + "/")),
+    (p) => pathname === p || (p !== "/" && pathname.startsWith(p + "/"))
   );
 }
 
@@ -32,15 +32,15 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
+            request.cookies.set(name, value)
           );
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
+            response.cookies.set(name, value, options)
           );
         },
       },
-    },
+    }
   );
 
   // IMPORTANT: getUser() validates the JWT against Supabase Auth.

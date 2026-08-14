@@ -24,7 +24,7 @@ function siteUrl() {
 
 export async function signUp(
   _prev: AuthFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AuthFormState> {
   const parsed = signupSchema.safeParse({
     fullName: formData.get("fullName"),
@@ -65,7 +65,7 @@ export async function signUp(
 
 export async function signIn(
   _prev: AuthFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AuthFormState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -121,7 +121,7 @@ export async function signOut() {
 
 export async function requestPasswordReset(
   _prev: AuthFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AuthFormState> {
   const parsed = emailSchema.safeParse(formData.get("email"));
   if (!parsed.success) {
@@ -149,7 +149,7 @@ export async function requestPasswordReset(
 
 export async function updatePassword(
   _prev: AuthFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<AuthFormState> {
   const parsed = passwordSchema.safeParse(formData.get("password"));
   if (!parsed.success) {
@@ -191,7 +191,7 @@ export async function updatePassword(
 /** Update last_login_at / login_count and record the login activity. */
 export async function recordLogin(
   userId: string,
-  provider: "email" | "google",
+  provider: "email" | "google"
 ) {
   const supabase = await createClient();
   const { data: profile } = await supabase

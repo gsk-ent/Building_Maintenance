@@ -18,7 +18,7 @@ const ALL_ROLES: AppRole[] = [
 export function GrantRoleForm({ userId }: { userId: string }) {
   const [state, action] = useActionState<ActionState, FormData>(
     grantGlobalRole,
-    {},
+    {}
   );
   return (
     <form action={action} className="flex items-center gap-1">

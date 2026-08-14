@@ -21,7 +21,7 @@ export interface ActionState {
 
 export async function createProperty(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = propertySchema.safeParse({
     name: formData.get("name"),
@@ -90,7 +90,7 @@ export async function createProperty(
 
 export async function createBuilding(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = buildingSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -141,7 +141,7 @@ export async function createBuilding(
 
 export async function createUnit(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = unitSchema.safeParse({
     buildingId: formData.get("buildingId"),
@@ -195,7 +195,7 @@ export async function createUnit(
  */
 export async function addPropertyMember(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = addMemberSchema.safeParse({
     propertyId: formData.get("propertyId"),

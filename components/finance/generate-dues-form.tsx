@@ -16,7 +16,7 @@ export function GenerateDuesForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     generateDuesForPeriod,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-2">

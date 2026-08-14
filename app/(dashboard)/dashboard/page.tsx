@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isManager, ROLE_LABELS } from "@/lib/permissions";
+import {
+  displayName,
+  getCurrentUser,
+  isManager,
+  ROLE_LABELS,
+} from "@/lib/permissions";
 
 export const metadata = { title: "Dashboard — Building Maintenance" };
 
@@ -75,7 +80,7 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-teal-deep">
-            Welcome, {user.profile?.full_name || user.email}
+            Welcome, {displayName(user)}
           </h1>
           <p className="text-sm text-muted">
             {user.roles.map((r) => ROLE_LABELS[r]).join(",") ||

@@ -30,20 +30,27 @@ describe("signupSchema", () => {
     expect(signupSchema.safeParse(base).success).toBe(true);
   });
   it("rejects mismatched passwords", () => {
-    const r = signupSchema.safeParse({ ...base, confirmPassword: "Different42X" });
+    const r = signupSchema.safeParse({
+      ...base,
+      confirmPassword: "Different42X",
+    });
     expect(r.success).toBe(false);
     if (!r.success) {
       expect(fieldErrors(r.error).confirmPassword).toMatch(/do not match/i);
     }
   });
   it("rejects invalid email", () => {
-    expect(signupSchema.safeParse({ ...base, email: "nope" }).success).toBe(false);
+    expect(signupSchema.safeParse({ ...base, email: "nope" }).success).toBe(
+      false
+    );
   });
 });
 
 describe("loginSchema", () => {
   it("requires both fields", () => {
-    expect(loginSchema.safeParse({ email: "", password: "" }).success).toBe(false);
+    expect(loginSchema.safeParse({ email: "", password: "" }).success).toBe(
+      false
+    );
   });
 });
 

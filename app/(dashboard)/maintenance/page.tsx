@@ -33,7 +33,7 @@ export default async function MaintenancePage({
   if (status && status in STATUS_BADGE) {
     query = query.eq(
       "status",
-      status as import("@/types/database").RequestStatus,
+      status as import("@/types/database").RequestStatus
     );
   }
   const { data: requests } = await query;

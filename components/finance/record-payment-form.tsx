@@ -16,7 +16,7 @@ export function RecordPaymentForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     recordDuePayment,
-    {},
+    {}
   );
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">

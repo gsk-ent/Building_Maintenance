@@ -7,7 +7,7 @@ import { Field, FormError, SubmitButton, TextArea } from "@/components/ui/form";
 export function PropertyForm() {
   const [state, action] = useActionState<ActionState, FormData>(
     createProperty,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-4" noValidate>

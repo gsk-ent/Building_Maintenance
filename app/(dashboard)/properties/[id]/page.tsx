@@ -95,7 +95,7 @@ export default async function PropertyDetailPage({
       .select("user_id, full_name, email")
       .in("user_id", ids);
     memberProfiles = new Map(
-      (profiles ?? []).map((p) => [p.user_id, p.full_name || p.email]),
+      (profiles ?? []).map((p) => [p.user_id, p.full_name || p.email])
     );
   }
   const unitLabel = new Map((units ?? []).map((u) => [u.id, u.unit_number]));

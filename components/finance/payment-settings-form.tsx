@@ -21,7 +21,7 @@ export function PaymentSettingsForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     updatePaymentSettings,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-4" noValidate>

@@ -7,7 +7,7 @@ import { Field, FormError, SubmitButton } from "@/components/ui/form";
 export function ResetPasswordForm() {
   const [state, action] = useActionState<AuthFormState, FormData>(
     updatePassword,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-4" noValidate>

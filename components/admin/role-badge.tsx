@@ -9,7 +9,7 @@ import type { AppRole } from "@/types/database";
 export function RoleBadge({ userId, role }: { userId: string; role: AppRole }) {
   const [state, action] = useActionState<ActionState, FormData>(
     revokeGlobalRole,
-    {},
+    {}
   );
   return (
     <form action={action} className="inline-flex items-center gap-1">

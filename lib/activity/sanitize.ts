@@ -3,7 +3,7 @@ const SENSITIVE_KEYS =
 
 /** Strips anything that looks like a credential from metadata before storage. */
 export function sanitizeMetadata(
-  metadata: Record<string, unknown> | undefined,
+  metadata: Record<string, unknown> | undefined
 ): Record<string, unknown> {
   if (!metadata) return {};
   const out: Record<string, unknown> = {};
@@ -21,7 +21,7 @@ export function sanitizeMetadata(
 /** Only allow same-site relative redirect targets (open-redirect guard). */
 export function safeRedirectPath(
   next: unknown,
-  fallback = "/dashboard",
+  fallback = "/dashboard"
 ): string {
   if (
     typeof next === "string" &&

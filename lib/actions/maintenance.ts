@@ -17,7 +17,7 @@ import type { ActionState } from "@/lib/actions/properties";
 
 export async function createMaintenanceRequest(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = maintenanceRequestSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -87,7 +87,7 @@ export async function createMaintenanceRequest(
             title: "New maintenance request",
             body: request.title,
             link: `/maintenance/${request.id}`,
-          })),
+          }))
       );
     }
   } catch (err) {
@@ -162,7 +162,7 @@ export async function assignRequest(formData: FormData): Promise<void> {
 
 export async function addComment(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = commentSchema.safeParse({
     requestId: formData.get("requestId"),
@@ -196,7 +196,7 @@ export async function addComment(
 
 export async function createWorkOrder(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = workOrderSchema.safeParse({
     requestId: formData.get("requestId"),

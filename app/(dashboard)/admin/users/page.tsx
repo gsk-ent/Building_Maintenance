@@ -49,7 +49,7 @@ export default async function ManageUsersPage({
     ...new Set(
       (assignments ?? [])
         .map((a) => a.unit_id)
-        .filter((id): id is string => !!id),
+        .filter((id): id is string => !!id)
     ),
   ];
   const [{ data: properties }, { data: units }] = await Promise.all([

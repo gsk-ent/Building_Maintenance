@@ -23,7 +23,7 @@ export function MemberForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     addPropertyMember,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-3" noValidate>

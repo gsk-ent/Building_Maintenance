@@ -29,7 +29,7 @@ export default async function MyDuesPage() {
   const { data: dues } = await supabase
     .from("monthly_dues")
     .select(
-      "id, unit_id, period, amount_due, amount_paid, paid_at, payment_method",
+      "id, unit_id, period, amount_due, amount_paid, paid_at, payment_method"
     )
     .order("period", { ascending: false });
 

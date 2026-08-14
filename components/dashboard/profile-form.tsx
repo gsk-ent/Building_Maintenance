@@ -19,7 +19,7 @@ export function ProfileForm({
 }) {
   const [state, action] = useActionState<ActionState, FormData>(
     updateProfile,
-    {},
+    {}
   );
   return (
     <form action={action} className="space-y-4" noValidate>

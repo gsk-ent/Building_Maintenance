@@ -34,6 +34,49 @@ export function needsAssignment(user: CurrentUser | null): boolean {
   return !isAdmin(user) && !isManager(user) && !user.isAssigned;
 }
 
+/**
+ * A human name for the header/greeting. Profiles created straight from the
+ * Supabase dashboard (or via Google accounts without a name claim) have an
+ * empty `full_name`, and showing a raw email in the header reads poorly —
+ * so fall back to a prettified email local-part ("satish.gunjute@..." →
+ * "Satish Gunjute") before ever showing the address itself.
+ */
+export function displayName(user: CurrentUser | null): string {
+  if (!user) return "";
+  const fullName = user.profile?.full_name?.trim();
+  if (fullName) return fullName;
+
+  const localPart = user.email.split("@")[0] ?? "";
+  const words = localPart
+    .split(/[._\-+]+/)
+    .filter(Boolean)
+    // Drop pure-digit fragments like the "92" in "satish.92".
+    .filter((w) => !/^\d+$/.test(w))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+
+  return words.length ? words.join(" ") : user.email;
+}
+
+/** Role ordered by seniority, for the caption under the user's name. */
+const ROLE_PRIORITY: AppRole[] = [
+  "admin",
+  "property_manager",
+  "maintenance_manager",
+  "technician",
+  "vendor",
+  "resident",
+];
+
+export function primaryRoleLabel(user: CurrentUser | null): string {
+  if (!user) return "";
+  const role = ROLE_PRIORITY.find((r) => user.roles.includes(r));
+  if (role) return ROLE_LABELS[role];
+  // No platform role, but they may still administer/manage a building.
+  if (user.isAdminOfAnyProperty) return "Building Admin";
+  if (user.managesAnyProperty) return "Building Manager";
+  return "Member";
+}
+
 export function hasRole(user: CurrentUser | null, ...roles: AppRole[]) {
   if (!user) return false;
   return user.roles.some((r) => roles.includes(r));

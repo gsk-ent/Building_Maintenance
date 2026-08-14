@@ -8,7 +8,7 @@ import type { ActionState } from "@/lib/actions/properties";
 
 export async function updateProfile(
   _prev: ActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionState> {
   const parsed = profileSchema.safeParse({
     fullName: formData.get("fullName"),
