@@ -16,7 +16,7 @@ import type { ActionState } from "@/lib/actions/properties";
 
 export async function updatePaymentSettings(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = paymentSettingsSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -49,7 +49,7 @@ export async function updatePaymentSettings(
       notes: d.notes || null,
       updated_by: user.id,
     },
-    { onConflict: "property_id" }
+    { onConflict: "property_id" },
   );
   if (error) return { errors: { _form: "Could not save payment settings." } };
 
@@ -66,7 +66,7 @@ export async function updatePaymentSettings(
 
 export async function createExpenseCategory(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = expenseCategorySchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -79,7 +79,10 @@ export async function createExpenseCategory(
     property_id: parsed.data.propertyId,
     name: parsed.data.name,
   });
-  if (error) return { errors: { _form: "Could not add category (maybe it already exists)." } };
+  if (error)
+    return {
+      errors: { _form: "Could not add category (maybe it already exists)." },
+    };
 
   revalidatePath("/finances/expenses");
   return { success: true, message: "Category added." };
@@ -87,7 +90,7 @@ export async function createExpenseCategory(
 
 export async function createExpense(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = expenseSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -138,7 +141,7 @@ export async function createExpense(
  */
 export async function generateDuesForPeriod(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = generateDuesSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -173,15 +176,19 @@ export async function generateDuesForPeriod(
   const { error } = await supabase
     .from("monthly_dues")
     .upsert(rows, { onConflict: "unit_id,period", ignoreDuplicates: true });
-  if (error) return { errors: { _form: "Could not generate dues for this period." } };
+  if (error)
+    return { errors: { _form: "Could not generate dues for this period." } };
 
   revalidatePath("/finances/dues");
-  return { success: true, message: `Dues generated for ${units.length} unit(s).` };
+  return {
+    success: true,
+    message: `Dues generated for ${units.length} unit(s).`,
+  };
 }
 
 export async function recordDuePayment(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = recordDuePaymentSchema.safeParse({
     dueId: formData.get("dueId"),
@@ -211,7 +218,9 @@ export async function recordDuePayment(
       payment_method: parsed.data.paymentMethod || null,
       notes: parsed.data.notes || null,
       paid_at:
-        parsed.data.amountPaid >= due.amount_due ? new Date().toISOString() : null,
+        parsed.data.amountPaid >= due.amount_due
+          ? new Date().toISOString()
+          : null,
       recorded_by: user.id,
     })
     .eq("id", parsed.data.dueId);
@@ -223,7 +232,7 @@ export async function recordDuePayment(
 
 export async function setDueAmount(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = setDueAmountSchema.safeParse({
     dueId: formData.get("dueId"),

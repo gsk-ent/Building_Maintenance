@@ -2,6 +2,10 @@
 
 import { useFormStatus } from "react-dom";
 
+const LABEL = "label-mono mb-1 block text-[11px]";
+const INPUT =
+  "w-full rounded-none border border-line bg-paper-2 px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-teal-deep focus:outline-none focus:ring-1 focus:ring-teal-deep";
+
 export function Field({
   label,
   name,
@@ -23,8 +27,8 @@ export function Field({
 }) {
   const errorId = `${name}-error`;
   return (
-    <div className="space-y-1">
-      <label htmlFor={name} className="block text-sm font-medium text-slate-700">
+    <div>
+      <label htmlFor={name} className={LABEL}>
         {label}
       </label>
       <input
@@ -37,10 +41,10 @@ export function Field({
         placeholder={placeholder}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className={INPUT}
       />
       {error && (
-        <p id={errorId} role="alert" className="text-sm text-red-600">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-bad">
           {error}
         </p>
       )}
@@ -65,8 +69,8 @@ export function TextArea({
 }) {
   const errorId = `${name}-error`;
   return (
-    <div className="space-y-1">
-      <label htmlFor={name} className="block text-sm font-medium text-slate-700">
+    <div>
+      <label htmlFor={name} className={LABEL}>
         {label}
       </label>
       <textarea
@@ -77,10 +81,10 @@ export function TextArea({
         defaultValue={defaultValue}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className={INPUT}
       />
       {error && (
-        <p id={errorId} role="alert" className="text-sm text-red-600">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-bad">
           {error}
         </p>
       )}
@@ -104,8 +108,8 @@ export function Select({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <label htmlFor={name} className="block text-sm font-medium text-slate-700">
+    <div>
+      <label htmlFor={name} className={LABEL}>
         {label}
       </label>
       <select
@@ -114,12 +118,12 @@ export function Select({
         required={required}
         defaultValue={defaultValue}
         aria-invalid={!!error}
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        className={INPUT}
       >
         {children}
       </select>
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="mt-1 text-sm text-bad">
           {error}
         </p>
       )}
@@ -137,15 +141,15 @@ export function SubmitButton({
   const { pending } = useFormStatus();
   const styles =
     variant === "primary"
-      ? "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-300"
+      ? "border border-teal-deep bg-teal-deep text-white hover:bg-teal"
       : variant === "danger"
-        ? "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-300"
-        : "bg-slate-100 text-slate-800 hover:bg-slate-200 focus-visible:ring-slate-300";
+        ? "border border-bad bg-bad text-white hover:opacity-90"
+        : "border border-dashed border-teal bg-transparent text-teal-deep hover:bg-paper-2";
   return (
     <button
       type="submit"
       disabled={pending}
-      className={`inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition focus-visible:outline-none focus-visible:ring-2 disabled:opacity-60 ${styles}`}
+      className={`label-mono inline-flex w-full items-center justify-center rounded-none px-4 py-2.5 text-[11px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal disabled:opacity-60 ${styles}`}
     >
       {pending ? "Please wait…" : children}
     </button>
@@ -157,7 +161,7 @@ export function FormError({ message }: { message?: string }) {
   return (
     <div
       role="alert"
-      className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+      className="border border-bad bg-bad/10 px-3 py-2 text-sm text-bad"
     >
       {message}
     </div>
@@ -169,7 +173,7 @@ export function FormSuccess({ message }: { message?: string }) {
   return (
     <div
       role="status"
-      className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700"
+      className="border border-good bg-good/10 px-3 py-2 text-sm text-good"
     >
       {message}
     </div>

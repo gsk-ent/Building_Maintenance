@@ -12,15 +12,19 @@ export default async function LoginPage({
   const { next } = await searchParams;
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-semibold text-slate-900">Sign in</h2>
+      <h2 className="text-lg font-bold text-teal-deep">Sign in</h2>
       <GoogleButton next={next} />
-      <div className="flex items-center gap-3 text-xs text-slate-400">
-        <div className="h-px flex-1 bg-slate-200" /> or <div className="h-px flex-1 bg-slate-200" />
+      <div className="label-mono flex items-center gap-3 text-[10px]">
+        <div className="h-px flex-1 bg-line" /> or{" "}
+        <div className="h-px flex-1 bg-line" />
       </div>
       <LoginForm next={next} />
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-ink">
         No account?{" "}
-        <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+        <Link
+          href="/signup"
+          className="font-bold text-teal-deep hover:underline"
+        >
           Sign up
         </Link>
       </p>

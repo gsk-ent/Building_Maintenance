@@ -17,18 +17,23 @@ export default async function NewRequestPage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">New maintenance request</h1>
+      <h1 className="text-xl font-bold text-teal-deep">
+        New maintenance request
+      </h1>
       {properties?.length ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-none border border-line bg-white p-5">
           <RequestForm
             properties={properties.map((p) => ({ id: p.id, label: p.name }))}
-            categories={(categories ?? []).map((c) => ({ id: c.id, label: c.name }))}
+            categories={(categories ?? []).map((c) => ({
+              id: c.id,
+              label: c.name,
+            }))}
           />
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-          You aren&apos;t assigned to any property yet. Ask your property manager
-          to add you before creating a request.
+        <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
+          You aren&apos;t assigned to any property yet. Ask your property
+          manager to add you before creating a request.
         </div>
       )}
     </div>

@@ -1,30 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f6f3ea;
+  --foreground: #1c2b2a;
 }
 
+/*
+ * Vintage-ledger palette, lifted from the original single-file app
+ * (BuildingMaintenanceSuite). Registered as Tailwind v4 theme tokens so
+ * they're usable directly as utilities: bg-paper, text-teal-deep,
+ * border-line, etc.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-/* Intentionally light-only: the UI is built with light Tailwind classes
-   (bg-white cards, slate text) and has no dark-mode variants yet. Letting
-   the OS force a dark background here would mismatch those cards on phones
-   that default to dark mode. */
+  --color-paper: #f6f3ea;
+  --color-paper-2: #ece6d6;
+  --color-line: #d8cfb8;
+  --color-ink: #1c2b2a;
+  --color-teal: #2f5d5a;
+  --color-teal-deep: #1c3a38;
+  --color-rust: #a85c32;
+  --color-good: #3c7a4e;
+  --color-bad: #b23a2f;
+  --color-gold: #b8912f;
+  --color-muted: #8a8a7a;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: "Courier New", "Courier", monospace;
+  --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+}
 
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+}
+
+/* A recurring "ledger label" treatment: small, uppercase, monospace,
+   letter-spaced, muted — used for field labels, section eyebrows, badges. */
+.label-mono {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
 }
 
 /* Prevent horizontal scroll from any accidental overflow on small screens. */

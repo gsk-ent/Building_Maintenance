@@ -23,7 +23,11 @@ export default async function ReportPage({
   searchParams,
 }: {
   params: Promise<{ type: string }>;
-  searchParams: Promise<{ property?: string; period?: string; months?: string }>;
+  searchParams: Promise<{
+    property?: string;
+    period?: string;
+    months?: string;
+  }>;
 }) {
   const { type } = await params;
   if (!(type in REPORT_TITLES)) notFound();
@@ -35,14 +39,22 @@ export default async function ReportPage({
   const sp = await searchParams;
   const supabase = await createClient();
 
-  const { data: properties } = await supabase.from("properties").select("id, name").order("name");
-  const propertyId = sp.property && properties?.some((p) => p.id === sp.property) ? sp.property : properties?.[0]?.id;
+  const { data: properties } = await supabase
+    .from("properties")
+    .select("id, name")
+    .order("name");
+  const propertyId =
+    sp.property && properties?.some((p) => p.id === sp.property)
+      ? sp.property
+      : properties?.[0]?.id;
   const property = properties?.find((p) => p.id === propertyId);
   if (!propertyId || !property) {
-    return <p className="text-sm text-slate-500">No property found.</p>;
+    return <p className="text-sm text-muted">No property found.</p>;
   }
 
-  const period = /^\d{4}-\d{2}$/.test(sp.period ?? "") ? sp.period! : currentPeriod();
+  const period = /^\d{4}-\d{2}$/.test(sp.period ?? "")
+    ? sp.period!
+    : currentPeriod();
   const periodDate = `${period}-01`;
   const generatedAt = new Date().toLocaleString();
 
@@ -50,22 +62,38 @@ export default async function ReportPage({
     <div className="mx-auto max-w-3xl space-y-4">
       <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
       <div className="no-print flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900">{REPORT_TITLES[type]}</h1>
+        <h1 className="text-xl font-bold text-teal-deep">
+          {REPORT_TITLES[type]}
+        </h1>
         <PrintButton />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
-        <header className="mb-4 border-b border-slate-200 pb-3">
-          <h2 className="text-lg font-bold text-slate-900">{property.name}</h2>
-          <p className="text-sm text-slate-500">
+      <div className="rounded-none border border-line bg-white p-6 print:border-0 print:shadow-none">
+        <header className="mb-4 border-b border-line pb-3">
+          <h2 className="text-lg font-bold text-ink">{property.name}</h2>
+          <p className="text-sm text-muted">
             {REPORT_TITLES[type]} · Generated {generatedAt}
           </p>
         </header>
 
-        {type === "collection" && <CollectionReport propertyId={propertyId} periodDate={periodDate} period={period} />}
+        {type === "collection" && (
+          <CollectionReport
+            propertyId={propertyId}
+            periodDate={periodDate}
+            period={period}
+          />
+        )}
         {type === "dues" && <OutstandingDuesReport propertyId={propertyId} />}
-        {type === "expenses" && <ExpenseReport propertyId={propertyId} periodDate={periodDate} period={period} />}
-        {type === "income-vs-expense" && <IncomeVsExpenseReport propertyId={propertyId} />}
+        {type === "expenses" && (
+          <ExpenseReport
+            propertyId={propertyId}
+            periodDate={periodDate}
+            period={period}
+          />
+        )}
+        {type === "income-vs-expense" && (
+          <IncomeVsExpenseReport propertyId={propertyId} />
+        )}
       </div>
     </div>
   );
@@ -73,7 +101,10 @@ export default async function ReportPage({
 
 async function unitsForProperty(propertyId: string) {
   const supabase = await createClient();
-  const { data: buildings } = await supabase.from("buildings").select("id").eq("property_id", propertyId);
+  const { data: buildings } = await supabase
+    .from("buildings")
+    .select("id")
+    .eq("property_id", propertyId);
   const buildingIds = (buildings ?? []).map((b) => b.id);
   if (!buildingIds.length) return [];
   const { data: units } = await supabase
@@ -83,9 +114,57 @@ async function unitsForProperty(propertyId: string) {
   return units ?? [];
 }
 
-async function CollectionReport({ propertyId, periodDate, period }: { propertyId: string; periodDate: string; period: string }) {
+/** unit_id → resident name(s), for report readability ("Flat 402 — Satya"). */
+async function ownersForProperty(
+  propertyId: string,
+): Promise<Map<string, string[]>> {
   const supabase = await createClient();
   const units = await unitsForProperty(propertyId);
+  const unitIds = units.map((u) => u.id);
+  const owners = new Map<string, string[]>();
+  if (!unitIds.length) return owners;
+
+  const { data: residents } = await supabase
+    .from("property_user_assignments")
+    .select("unit_id, user_id")
+    .in("unit_id", unitIds)
+    .eq("relationship", "resident");
+  const residentUserIds = [...new Set((residents ?? []).map((r) => r.user_id))];
+  if (!residentUserIds.length) return owners;
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, full_name, email")
+    .in("user_id", residentUserIds);
+  const nameByUser = new Map(
+    (profiles ?? []).map((p) => [p.user_id, p.full_name || p.email]),
+  );
+
+  for (const r of residents ?? []) {
+    if (!r.unit_id) continue;
+    const name = nameByUser.get(r.user_id);
+    if (!name) continue;
+    const list = owners.get(r.unit_id) ?? [];
+    list.push(name);
+    owners.set(r.unit_id, list);
+  }
+  return owners;
+}
+
+async function CollectionReport({
+  propertyId,
+  periodDate,
+  period,
+}: {
+  propertyId: string;
+  periodDate: string;
+  period: string;
+}) {
+  const supabase = await createClient();
+  const [units, owners] = await Promise.all([
+    unitsForProperty(propertyId),
+    ownersForProperty(propertyId),
+  ]);
   const { data: dues } = await supabase
     .from("monthly_dues")
     .select("id, unit_id, amount_due, amount_paid")
@@ -99,49 +178,61 @@ async function CollectionReport({ propertyId, periodDate, period }: { propertyId
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">Period: {formatPeriod(period)}</p>
-      <div className="overflow-x-auto"><table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
-            <th className="py-1">Unit</th>
-            <th className="py-1">Due</th>
-            <th className="py-1">Paid</th>
-            <th className="py-1">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-b border-slate-100">
-              <td className="py-1 font-medium">{unitNumber.get(r.unit_id)}</td>
-              <td className="py-1">{formatCurrency(r.amount_due)}</td>
-              <td className="py-1">{formatCurrency(r.amount_paid)}</td>
-              <td className="py-1 capitalize">{r.status}</td>
+      <p className="text-sm text-ink">Period: {formatPeriod(period)}</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-line text-left text-xs uppercase text-muted">
+              <th className="py-1">Flat</th>
+              <th className="py-1">Owner</th>
+              <th className="py-1">Due</th>
+              <th className="py-1">Paid</th>
+              <th className="py-1">Status</th>
             </tr>
-          ))}
-          {!rows.length && (
-            <tr>
-              <td colSpan={4} className="py-4 text-center text-slate-500">
-                No dues generated for this month.
-              </td>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-b border-line">
+                <td className="py-1 font-medium">
+                  {unitNumber.get(r.unit_id)}
+                </td>
+                <td className="py-1 text-ink">
+                  {(owners.get(r.unit_id) ?? []).join(",") || "—"}
+                </td>
+                <td className="py-1">{formatCurrency(r.amount_due)}</td>
+                <td className="py-1">{formatCurrency(r.amount_paid)}</td>
+                <td className="py-1 capitalize">{r.status}</td>
+              </tr>
+            ))}
+            {!rows.length && (
+              <tr>
+                <td colSpan={5} className="py-4 text-center text-muted">
+                  No dues generated for this month.
+                </td>
+              </tr>
+            )}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-line font-semibold">
+              <td className="py-2">Total</td>
+              <td />
+              <td className="py-2">{formatCurrency(totalDue)}</td>
+              <td className="py-2">{formatCurrency(totalPaid)}</td>
+              <td />
             </tr>
-          )}
-        </tbody>
-        <tfoot>
-          <tr className="border-t-2 border-slate-300 font-semibold">
-            <td className="py-2">Total</td>
-            <td className="py-2">{formatCurrency(totalDue)}</td>
-            <td className="py-2">{formatCurrency(totalPaid)}</td>
-            <td />
-          </tr>
-        </tfoot>
-      </table></div>
+          </tfoot>
+        </table>
+      </div>
     </div>
   );
 }
 
 async function OutstandingDuesReport({ propertyId }: { propertyId: string }) {
   const supabase = await createClient();
-  const units = await unitsForProperty(propertyId);
+  const [units, owners] = await Promise.all([
+    unitsForProperty(propertyId),
+    ownersForProperty(propertyId),
+  ]);
   const { data: dues } = await supabase
     .from("monthly_dues")
     .select("unit_id, amount_due, amount_paid")
@@ -160,42 +251,57 @@ async function OutstandingDuesReport({ propertyId }: { propertyId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto"><table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
-            <th className="py-1">Unit</th>
-            <th className="py-1">Outstanding balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(([unitId, bal]) => (
-            <tr key={unitId} className="border-b border-slate-100">
-              <td className="py-1 font-medium">{unitNumber.get(unitId)}</td>
-              <td className="py-1 text-red-700">{formatCurrency(bal)}</td>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-line text-left text-xs uppercase text-muted">
+              <th className="py-1">Flat</th>
+              <th className="py-1">Owner</th>
+              <th className="py-1">Outstanding balance</th>
             </tr>
-          ))}
-          {!rows.length && (
-            <tr>
-              <td colSpan={2} className="py-4 text-center text-slate-500">
-                No outstanding dues — everyone is paid up.
-              </td>
-            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([unitId, bal]) => (
+              <tr key={unitId} className="border-b border-line">
+                <td className="py-1 font-medium">{unitNumber.get(unitId)}</td>
+                <td className="py-1 text-ink">
+                  {(owners.get(unitId) ?? []).join(",") || "—"}
+                </td>
+                <td className="py-1 text-bad">{formatCurrency(bal)}</td>
+              </tr>
+            ))}
+            {!rows.length && (
+              <tr>
+                <td colSpan={3} className="py-4 text-center text-muted">
+                  No outstanding dues — everyone is paid up.
+                </td>
+              </tr>
+            )}
+          </tbody>
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="border-t-2 border-line font-semibold">
+                <td className="py-2">Total outstanding</td>
+                <td />
+                <td className="py-2 text-bad">{formatCurrency(total)}</td>
+              </tr>
+            </tfoot>
           )}
-        </tbody>
-        {rows.length > 0 && (
-          <tfoot>
-            <tr className="border-t-2 border-slate-300 font-semibold">
-              <td className="py-2">Total outstanding</td>
-              <td className="py-2 text-red-700">{formatCurrency(total)}</td>
-            </tr>
-          </tfoot>
-        )}
-      </table></div>
+        </table>
+      </div>
     </div>
   );
 }
 
-async function ExpenseReport({ propertyId, periodDate, period }: { propertyId: string; periodDate: string; period: string }) {
+async function ExpenseReport({
+  propertyId,
+  periodDate,
+  period,
+}: {
+  propertyId: string;
+  periodDate: string;
+  period: string;
+}) {
   const supabase = await createClient();
   const { data: expenses } = await supabase
     .from("expenses")
@@ -203,15 +309,26 @@ async function ExpenseReport({ propertyId, periodDate, period }: { propertyId: s
     .eq("property_id", propertyId)
     .eq("period", periodDate);
 
-  const categoryIds = [...new Set((expenses ?? []).map((e) => e.category_id).filter((id): id is string => !!id))];
+  const categoryIds = [
+    ...new Set(
+      (expenses ?? [])
+        .map((e) => e.category_id)
+        .filter((id): id is string => !!id),
+    ),
+  ];
   const nameById = new Map<string, string>();
   if (categoryIds.length) {
-    const { data: cats } = await supabase.from("expense_categories").select("id, name").in("id", categoryIds);
+    const { data: cats } = await supabase
+      .from("expense_categories")
+      .select("id, name")
+      .in("id", categoryIds);
     for (const c of cats ?? []) nameById.set(c.id, c.name);
   }
   const byCategory = new Map<string, number>();
   for (const e of expenses ?? []) {
-    const name = e.category_id ? (nameById.get(e.category_id) ?? "Uncategorised") : "Uncategorised";
+    const name = e.category_id
+      ? (nameById.get(e.category_id) ?? "Uncategorised")
+      : "Uncategorised";
     byCategory.set(name, (byCategory.get(name) ?? 0) + e.amount);
   }
   const rows = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
@@ -219,38 +336,40 @@ async function ExpenseReport({ propertyId, periodDate, period }: { propertyId: s
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">Period: {period}</p>
-      <div className="overflow-x-auto"><table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
-            <th className="py-1">Category</th>
-            <th className="py-1">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(([name, amt]) => (
-            <tr key={name} className="border-b border-slate-100">
-              <td className="py-1 font-medium">{name}</td>
-              <td className="py-1">{formatCurrency(amt)}</td>
+      <p className="text-sm text-ink">Period: {period}</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-line text-left text-xs uppercase text-muted">
+              <th className="py-1">Category</th>
+              <th className="py-1">Amount</th>
             </tr>
-          ))}
-          {!rows.length && (
-            <tr>
-              <td colSpan={2} className="py-4 text-center text-slate-500">
-                No expenses recorded for this month.
-              </td>
-            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([name, amt]) => (
+              <tr key={name} className="border-b border-line">
+                <td className="py-1 font-medium">{name}</td>
+                <td className="py-1">{formatCurrency(amt)}</td>
+              </tr>
+            ))}
+            {!rows.length && (
+              <tr>
+                <td colSpan={2} className="py-4 text-center text-muted">
+                  No expenses recorded for this month.
+                </td>
+              </tr>
+            )}
+          </tbody>
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="border-t-2 border-line font-semibold">
+                <td className="py-2">Total</td>
+                <td className="py-2">{formatCurrency(total)}</td>
+              </tr>
+            </tfoot>
           )}
-        </tbody>
-        {rows.length > 0 && (
-          <tfoot>
-            <tr className="border-t-2 border-slate-300 font-semibold">
-              <td className="py-2">Total</td>
-              <td className="py-2">{formatCurrency(total)}</td>
-            </tr>
-          </tfoot>
-        )}
-      </table></div>
+        </table>
+      </div>
     </div>
   );
 }
@@ -258,33 +377,64 @@ async function ExpenseReport({ propertyId, periodDate, period }: { propertyId: s
 async function IncomeVsExpenseReport({ propertyId }: { propertyId: string }) {
   const supabase = await createClient();
   const [{ data: dues }, { data: expenses }] = await Promise.all([
-    supabase.from("monthly_dues").select("period, amount_paid").eq("property_id", propertyId),
-    supabase.from("expenses").select("period, amount").eq("property_id", propertyId),
+    supabase
+      .from("monthly_dues")
+      .select("period, amount_paid")
+      .eq("property_id", propertyId),
+    supabase
+      .from("expenses")
+      .select("period, amount")
+      .eq("property_id", propertyId),
   ]);
 
   const incomeByMonth = new Map<string, number>();
   for (const d of dues ?? []) {
-    incomeByMonth.set(d.period, (incomeByMonth.get(d.period) ?? 0) + d.amount_paid);
+    incomeByMonth.set(
+      d.period,
+      (incomeByMonth.get(d.period) ?? 0) + d.amount_paid,
+    );
   }
   const expenseByMonth = new Map<string, number>();
   for (const e of expenses ?? []) {
-    expenseByMonth.set(e.period, (expenseByMonth.get(e.period) ?? 0) + e.amount);
+    expenseByMonth.set(
+      e.period,
+      (expenseByMonth.get(e.period) ?? 0) + e.amount,
+    );
   }
-  const months = [...new Set([...incomeByMonth.keys(), ...expenseByMonth.keys()])].sort().slice(-6);
-  const max = Math.max(1, ...months.map((m) => Math.max(incomeByMonth.get(m) ?? 0, expenseByMonth.get(m) ?? 0)));
+  const months = [
+    ...new Set([...incomeByMonth.keys(), ...expenseByMonth.keys()]),
+  ]
+    .sort()
+    .slice(-6);
+  const max = Math.max(
+    1,
+    ...months.map((m) =>
+      Math.max(incomeByMonth.get(m) ?? 0, expenseByMonth.get(m) ?? 0),
+    ),
+  );
 
   return (
     <div className="space-y-6">
       {months.length ? (
         months.map((m) => (
           <div key={m} className="space-y-1">
-            <p className="text-xs font-semibold uppercase text-slate-500">{formatPeriod(m)}</p>
-            <Bar label="Income" value={Math.round(incomeByMonth.get(m) ?? 0)} max={max} />
-            <Bar label="Expense" value={Math.round(expenseByMonth.get(m) ?? 0)} max={max} />
+            <p className="text-xs font-semibold uppercase text-muted">
+              {formatPeriod(m)}
+            </p>
+            <Bar
+              label="Income"
+              value={Math.round(incomeByMonth.get(m) ?? 0)}
+              max={max}
+            />
+            <Bar
+              label="Expense"
+              value={Math.round(expenseByMonth.get(m) ?? 0)}
+              max={max}
+            />
           </div>
         ))
       ) : (
-        <p className="text-sm text-slate-500">No income or expense data yet.</p>
+        <p className="text-sm text-muted">No income or expense data yet.</p>
       )}
     </div>
   );

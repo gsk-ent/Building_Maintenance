@@ -26,7 +26,10 @@ export function LoginForm({ next }: { next?: string }) {
         error={state.errors?.password}
       />
       <div className="text-right text-sm">
-        <Link href="/forgot-password" className="font-medium text-blue-600 hover:underline">
+        <Link
+          href="/forgot-password"
+          className="font-medium text-teal-deep hover:underline"
+        >
           Forgot password?
         </Link>
       </div>

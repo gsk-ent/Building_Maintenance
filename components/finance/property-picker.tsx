@@ -16,10 +16,10 @@ export function PropertyPicker({
         <Link
           key={p.id}
           href={`${basePath}?property=${p.id}`}
-          className={`rounded-full px-3 py-1 text-xs font-medium ${
+          className={`rounded-sm px-3 py-1 text-xs font-medium ${
             activeId === p.id
-              ? "bg-blue-600 text-white"
-              : "bg-white text-slate-600 border border-slate-300"
+              ? "bg-teal-deep text-white"
+              : "bg-white text-ink border border-line"
           }`}
         >
           {p.name}

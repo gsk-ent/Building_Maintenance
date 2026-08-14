@@ -9,8 +9,8 @@ export default async function NewPropertyPage() {
   if (!user || !isManager(user)) redirect("/dashboard");
   return (
     <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">Add property</h1>
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h1 className="text-xl font-bold text-teal-deep">Add property</h1>
+      <div className="rounded-none border border-line bg-white p-5">
         <PropertyForm />
       </div>
     </div>

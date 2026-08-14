@@ -2,10 +2,18 @@
 
 import { useActionState } from "react";
 import { createBuilding, type ActionState } from "@/lib/actions/properties";
-import { Field, FormError, FormSuccess, SubmitButton } from "@/components/ui/form";
+import {
+  Field,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "@/components/ui/form";
 
 export function BuildingForm({ propertyId }: { propertyId: string }) {
-  const [state, action] = useActionState<ActionState, FormData>(createBuilding, {});
+  const [state, action] = useActionState<ActionState, FormData>(
+    createBuilding,
+    {},
+  );
   return (
     <form action={action} className="space-y-3" noValidate>
       <input type="hidden" name="propertyId" value={propertyId} />

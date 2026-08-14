@@ -14,7 +14,10 @@ export function GenerateDuesForm({
   buildingId: string;
   period: string;
 }) {
-  const [state, action] = useActionState<ActionState, FormData>(generateDuesForPeriod, {});
+  const [state, action] = useActionState<ActionState, FormData>(
+    generateDuesForPeriod,
+    {},
+  );
   return (
     <form action={action} className="space-y-2">
       <input type="hidden" name="propertyId" value={propertyId} />
@@ -22,7 +25,9 @@ export function GenerateDuesForm({
       <input type="hidden" name="period" value={period} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
-      <SubmitButton variant="secondary">Generate dues for this month</SubmitButton>
+      <SubmitButton variant="secondary">
+        Generate dues for this month
+      </SubmitButton>
     </form>
   );
 }

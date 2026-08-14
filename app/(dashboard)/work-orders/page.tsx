@@ -12,20 +12,25 @@ export default async function WorkOrdersPage() {
   const supabase = await createClient();
   const { data: workOrders } = await supabase
     .from("work_orders")
-    .select("id, title, status, scheduled_for, cost_estimate, request_id, created_at")
+    .select(
+      "id, title, status, scheduled_for, cost_estimate, request_id, created_at",
+    )
     .order("created_at", { ascending: false })
     .limit(50);
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">Work orders</h1>
+      <h1 className="text-xl font-bold text-teal-deep">Work orders</h1>
       {workOrders?.length ? (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <ul className="divide-y divide-line rounded-none border border-line bg-white">
           {workOrders.map((w) => (
-            <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <li
+              key={w.id}
+              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+            >
               <div>
-                <p className="text-sm font-medium text-slate-800">{w.title}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-ink">{w.title}</p>
+                <p className="text-xs text-muted">
                   {w.status}
                   {w.scheduled_for
                     ? ` · scheduled ${new Date(w.scheduled_for).toLocaleString()}`
@@ -38,7 +43,7 @@ export default async function WorkOrdersPage() {
                   <input type="hidden" name="workOrderId" value={w.id} />
                   <button
                     type="submit"
-                    className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 hover:bg-green-100"
+                    className="rounded-none border border-good bg-good/10 px-3 py-1.5 text-sm font-medium text-good hover:bg-good/10"
                   >
                     Mark completed
                   </button>
@@ -48,7 +53,7 @@ export default async function WorkOrdersPage() {
           ))}
         </ul>
       ) : (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
           No work orders visible to you.
         </div>
       )}

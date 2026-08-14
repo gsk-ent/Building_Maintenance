@@ -2,7 +2,12 @@
 
 import { useActionState } from "react";
 import { signUp, type AuthFormState } from "@/lib/auth/actions";
-import { Field, FormError, FormSuccess, SubmitButton } from "@/components/ui/form";
+import {
+  Field,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "@/components/ui/form";
 
 export function SignupForm() {
   const [state, action] = useActionState<AuthFormState, FormData>(signUp, {});
@@ -37,7 +42,7 @@ export function SignupForm() {
         autoComplete="new-password"
         error={state.errors?.confirmPassword}
       />
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted">
         At least 10 characters with upper- and lowercase letters and a number.
       </p>
       <SubmitButton>Create account</SubmitButton>

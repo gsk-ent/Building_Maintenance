@@ -23,11 +23,7 @@ export type RequestStatus =
 export type RequestPriority = "low" | "medium" | "high" | "urgent";
 
 export type WorkOrderStatus =
-  | "draft"
-  | "assigned"
-  | "in_progress"
-  | "completed"
-  | "cancelled";
+  "draft" | "assigned" | "in_progress" | "completed" | "cancelled";
 
 export type Profile = {
   id: string;
@@ -41,14 +37,14 @@ export type Profile = {
   login_count: number;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type UserRole = {
   id: string;
   user_id: string;
   role: AppRole;
   created_at: string;
-}
+};
 
 export type Property = {
   id: string;
@@ -63,7 +59,7 @@ export type Property = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type Building = {
   id: string;
@@ -73,7 +69,7 @@ export type Building = {
   notes: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type Unit = {
   id: string;
@@ -83,7 +79,7 @@ export type Unit = {
   default_monthly_amount: number | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type PropertyUserAssignment = {
   id: string;
@@ -92,14 +88,14 @@ export type PropertyUserAssignment = {
   relationship: "admin" | "manager" | "resident" | "technician" | "vendor";
   unit_id: string | null;
   created_at: string;
-}
+};
 
 export type MaintenanceCategory = {
   id: string;
   name: string;
   description: string | null;
   created_at: string;
-}
+};
 
 export type MaintenanceRequest = {
   id: string;
@@ -116,7 +112,7 @@ export type MaintenanceRequest = {
   closed_at: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type MaintenanceRequestComment = {
   id: string;
@@ -124,7 +120,7 @@ export type MaintenanceRequestComment = {
   author_id: string;
   body: string;
   created_at: string;
-}
+};
 
 export type WorkOrder = {
   id: string;
@@ -141,7 +137,7 @@ export type WorkOrder = {
   created_by: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type Vendor = {
   id: string;
@@ -152,7 +148,7 @@ export type Vendor = {
   user_id: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type AppNotification = {
   id: string;
@@ -162,7 +158,7 @@ export type AppNotification = {
   link: string | null;
   read_at: string | null;
   created_at: string;
-}
+};
 
 export type UserActivity = {
   id: string;
@@ -176,7 +172,7 @@ export type UserActivity = {
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
-}
+};
 
 export type Document = {
   id: string;
@@ -189,8 +185,7 @@ export type Document = {
   size_bytes: number | null;
   uploaded_by: string;
   created_at: string;
-}
-
+};
 
 export type PropertyPaymentSettings = {
   id: string;
@@ -205,14 +200,14 @@ export type PropertyPaymentSettings = {
   updated_by: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type ExpenseCategory = {
   id: string;
   property_id: string;
   name: string;
   created_at: string;
-}
+};
 
 export type Expense = {
   id: string;
@@ -224,7 +219,7 @@ export type Expense = {
   created_by: string;
   created_at: string;
   updated_at: string;
-}
+};
 
 export type MonthlyDue = {
   id: string;
@@ -239,7 +234,7 @@ export type MonthlyDue = {
   recorded_by: string | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 /** Minimal Supabase Database generic. */
 type TableDef<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
@@ -281,4 +276,4 @@ export type Database = {
     };
     CompositeTypes: { [_ in never]: never };
   };
-}
+};

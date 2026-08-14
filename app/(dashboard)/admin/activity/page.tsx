@@ -45,7 +45,9 @@ export default async function ActivityLogPage({
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   // Resolve user names in one query.
-  const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter(Boolean))] as string[];
+  const userIds = [
+    ...new Set((rows ?? []).map((r) => r.user_id).filter(Boolean)),
+  ] as string[];
   const nameByUser = new Map<string, string>();
   if (userIds.length) {
     const { data: profiles } = await supabase
@@ -67,42 +69,85 @@ export default async function ActivityLogPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">Activity log</h1>
+      <h1 className="text-xl font-bold text-teal-deep">Activity log</h1>
 
-      <form method="get" className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-5">
+      <form
+        method="get"
+        className="grid grid-cols-1 gap-3 rounded-none border border-line bg-white p-4 sm:grid-cols-2 lg:grid-cols-5"
+      >
         <div>
-          <label htmlFor="action" className="block text-xs font-medium text-slate-600">Action contains</label>
-          <input id="action" name="action" defaultValue={sp.action ?? ""} placeholder="e.g. auth.login"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+          <label
+            htmlFor="action"
+            className="block text-xs font-medium text-ink"
+          >
+            Action contains
+          </label>
+          <input
+            id="action"
+            name="action"
+            defaultValue={sp.action ?? ""}
+            placeholder="e.g. auth.login"
+            className="mt-1 w-full rounded-none border border-line px-2 py-1.5 text-sm"
+          />
         </div>
         <div>
-          <label htmlFor="entity" className="block text-xs font-medium text-slate-600">Entity type</label>
-          <input id="entity" name="entity" defaultValue={sp.entity ?? ""} placeholder="maintenance_request"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+          <label
+            htmlFor="entity"
+            className="block text-xs font-medium text-ink"
+          >
+            Entity type
+          </label>
+          <input
+            id="entity"
+            name="entity"
+            defaultValue={sp.entity ?? ""}
+            placeholder="maintenance_request"
+            className="mt-1 w-full rounded-none border border-line px-2 py-1.5 text-sm"
+          />
         </div>
         <div>
-          <label htmlFor="from" className="block text-xs font-medium text-slate-600">From</label>
-          <input id="from" name="from" type="date" defaultValue={sp.from ?? ""}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+          <label htmlFor="from" className="block text-xs font-medium text-ink">
+            From
+          </label>
+          <input
+            id="from"
+            name="from"
+            type="date"
+            defaultValue={sp.from ?? ""}
+            className="mt-1 w-full rounded-none border border-line px-2 py-1.5 text-sm"
+          />
         </div>
         <div>
-          <label htmlFor="to" className="block text-xs font-medium text-slate-600">To</label>
-          <input id="to" name="to" type="date" defaultValue={sp.to ?? ""}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm" />
+          <label htmlFor="to" className="block text-xs font-medium text-ink">
+            To
+          </label>
+          <input
+            id="to"
+            name="to"
+            type="date"
+            defaultValue={sp.to ?? ""}
+            className="mt-1 w-full rounded-none border border-line px-2 py-1.5 text-sm"
+          />
         </div>
         <div className="flex items-end gap-2">
-          <button type="submit" className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-700">
+          <button
+            type="submit"
+            className="rounded-none bg-teal-deep px-4 py-1.5 text-sm font-semibold text-white hover:bg-teal"
+          >
             Filter
           </button>
-          <Link href="/admin/activity" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">
+          <Link
+            href="/admin/activity"
+            className="label-mono border border-line px-3 py-1.5 text-[11px] text-ink hover:bg-paper"
+          >
             Clear
           </Link>
         </div>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+      <div className="overflow-x-auto rounded-none border border-line bg-white">
+        <table className="min-w-full divide-y divide-line text-sm">
+          <thead className="bg-paper text-left text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-2">Time</th>
               <th className="px-4 py-2">User</th>
@@ -111,24 +156,28 @@ export default async function ActivityLogPage({
               <th className="px-4 py-2">Description / metadata</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-line">
             {(rows ?? []).map((r) => (
               <tr key={r.id} className="align-top">
-                <td className="whitespace-nowrap px-4 py-2 text-xs text-slate-500">
+                <td className="whitespace-nowrap px-4 py-2 text-xs text-muted">
                   {new Date(r.created_at).toLocaleString()}
                 </td>
-                <td className="px-4 py-2 text-slate-700">
-                  {r.user_id ? (nameByUser.get(r.user_id) ?? r.user_id.slice(0, 8)) : "system"}
+                <td className="px-4 py-2 text-ink">
+                  {r.user_id
+                    ? (nameByUser.get(r.user_id) ?? r.user_id.slice(0, 8))
+                    : "system"}
                 </td>
-                <td className="px-4 py-2 font-mono text-xs text-slate-800">{r.action}</td>
-                <td className="px-4 py-2 text-xs text-slate-600">
+                <td className="px-4 py-2 font-mono text-xs text-ink">
+                  {r.action}
+                </td>
+                <td className="px-4 py-2 text-xs text-ink">
                   {r.entity_type}
                   {r.entity_id ? ` · ${r.entity_id.slice(0, 8)}…` : ""}
                 </td>
-                <td className="px-4 py-2 text-xs text-slate-600">
+                <td className="px-4 py-2 text-xs text-ink">
                   {r.description}
                   {Object.keys(r.metadata ?? {}).length > 0 && (
-                    <pre className="mt-1 max-w-md overflow-x-auto rounded bg-slate-50 p-1 text-[11px] text-slate-500">
+                    <pre className="mt-1 max-w-md overflow-x-auto rounded bg-paper p-1 text-[11px] text-muted">
                       {JSON.stringify(r.metadata)}
                     </pre>
                   )}
@@ -137,7 +186,7 @@ export default async function ActivityLogPage({
             ))}
             {!rows?.length && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted">
                   No activity matches these filters.
                 </td>
               </tr>
@@ -146,18 +195,24 @@ export default async function ActivityLogPage({
         </table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-slate-600">
+      <div className="flex items-center justify-between text-sm text-ink">
         <span>
           Page {page} of {totalPages} · {count ?? 0} events
         </span>
         <div className="flex gap-2">
           {page > 1 && (
-            <Link href={qs({ page: String(page - 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50">
+            <Link
+              href={qs({ page: String(page - 1) })}
+              className="rounded-none border border-line px-3 py-1.5 hover:bg-paper"
+            >
               ← Previous
             </Link>
           )}
           {page < totalPages && (
-            <Link href={qs({ page: String(page + 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50">
+            <Link
+              href={qs({ page: String(page + 1) })}
+              className="rounded-none border border-line px-3 py-1.5 hover:bg-paper"
+            >
               Next →
             </Link>
           )}

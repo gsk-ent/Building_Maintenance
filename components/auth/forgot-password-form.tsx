@@ -2,12 +2,17 @@
 
 import { useActionState } from "react";
 import { requestPasswordReset, type AuthFormState } from "@/lib/auth/actions";
-import { Field, FormError, FormSuccess, SubmitButton } from "@/components/ui/form";
+import {
+  Field,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+} from "@/components/ui/form";
 
 export function ForgotPasswordForm() {
   const [state, action] = useActionState<AuthFormState, FormData>(
     requestPasswordReset,
-    {}
+    {},
   );
   if (state.success) return <FormSuccess message={state.message} />;
   return (

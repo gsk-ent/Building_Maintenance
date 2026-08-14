@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 /** Any 8-4-4-4-12 hex GUID (Postgres uuid accepts all variants). */
-const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const UUID_RE =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 const uuid = (msg = "Invalid id") => z.string().regex(UUID_RE, msg);
 
 export const emailSchema = z
@@ -168,6 +169,24 @@ export const unitSchema = z.object({
 export const addMemberSchema = z.object({
   propertyId: uuid(),
   email: emailSchema,
-  relationship: z.enum(["admin", "manager", "resident", "technician", "vendor"]),
+  relationship: z.enum([
+    "admin",
+    "manager",
+    "resident",
+    "technician",
+    "vendor",
+  ]),
   unitId: uuid().optional().or(z.literal("")),
+});
+
+export const grantRoleSchema = z.object({
+  userId: uuid(),
+  role: z.enum([
+    "admin",
+    "property_manager",
+    "maintenance_manager",
+    "technician",
+    "resident",
+    "vendor",
+  ]),
 });

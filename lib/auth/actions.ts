@@ -22,11 +22,9 @@ function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
 
-
-
 export async function signUp(
   _prev: AuthFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthFormState> {
   const parsed = signupSchema.safeParse({
     fullName: formData.get("fullName"),
@@ -67,7 +65,7 @@ export async function signUp(
 
 export async function signIn(
   _prev: AuthFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthFormState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -123,7 +121,7 @@ export async function signOut() {
 
 export async function requestPasswordReset(
   _prev: AuthFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthFormState> {
   const parsed = emailSchema.safeParse(formData.get("email"));
   if (!parsed.success) {
@@ -151,11 +149,15 @@ export async function requestPasswordReset(
 
 export async function updatePassword(
   _prev: AuthFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<AuthFormState> {
   const parsed = passwordSchema.safeParse(formData.get("password"));
   if (!parsed.success) {
-    return { errors: { password: parsed.error.issues[0]?.message ?? "Invalid password" } };
+    return {
+      errors: {
+        password: parsed.error.issues[0]?.message ?? "Invalid password",
+      },
+    };
   }
   if (formData.get("password") !== formData.get("confirmPassword")) {
     return { errors: { confirmPassword: "Passwords do not match" } };
@@ -166,7 +168,9 @@ export async function updatePassword(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { errors: { _form: "Your reset link has expired. Request a new one." } };
+    return {
+      errors: { _form: "Your reset link has expired. Request a new one." },
+    };
   }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data });
@@ -185,7 +189,10 @@ export async function updatePassword(
 }
 
 /** Update last_login_at / login_count and record the login activity. */
-export async function recordLogin(userId: string, provider: "email" | "google") {
+export async function recordLogin(
+  userId: string,
+  provider: "email" | "google",
+) {
   const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")

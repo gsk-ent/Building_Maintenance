@@ -5,7 +5,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { AppRole } from "@/types/database";
 import { logActivity } from "@/lib/activity/log";
-import { addMemberSchema, buildingSchema, fieldErrors, propertySchema, unitSchema } from "@/lib/validation";
+import {
+  addMemberSchema,
+  buildingSchema,
+  fieldErrors,
+  propertySchema,
+  unitSchema,
+} from "@/lib/validation";
 
 export interface ActionState {
   errors?: Record<string, string>;
@@ -15,7 +21,7 @@ export interface ActionState {
 
 export async function createProperty(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = propertySchema.safeParse({
     name: formData.get("name"),
@@ -54,7 +60,11 @@ export async function createProperty(
 
   if (error) {
     // RLS denial or constraint violation — never expose raw SQL errors.
-    return { errors: { _form: "Could not create the property. Check your permissions." } };
+    return {
+      errors: {
+        _form: "Could not create the property. Check your permissions.",
+      },
+    };
   }
 
   // The creator becomes the building's first admin — every building
@@ -80,7 +90,7 @@ export async function createProperty(
 
 export async function createBuilding(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = buildingSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -108,7 +118,12 @@ export async function createBuilding(
     .single();
 
   if (error) {
-    return { errors: { _form: "Could not create the building (duplicate name or no permission)." } };
+    return {
+      errors: {
+        _form:
+          "Could not create the building (duplicate name or no permission).",
+      },
+    };
   }
 
   await logActivity({
@@ -126,7 +141,7 @@ export async function createBuilding(
 
 export async function createUnit(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = unitSchema.safeParse({
     buildingId: formData.get("buildingId"),
@@ -153,7 +168,11 @@ export async function createUnit(
     .select("id, unit_number")
     .single();
   if (error) {
-    return { errors: { _form: "Could not add the unit (duplicate number or no permission)." } };
+    return {
+      errors: {
+        _form: "Could not add the unit (duplicate number or no permission).",
+      },
+    };
   }
 
   await logActivity({
@@ -176,7 +195,7 @@ export async function createUnit(
  */
 export async function addPropertyMember(
   _prev: ActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionState> {
   const parsed = addMemberSchema.safeParse({
     propertyId: formData.get("propertyId"),
@@ -200,7 +219,8 @@ export async function addPropertyMember(
   if (!profile) {
     return {
       errors: {
-        email: "No account found for that email yet. Ask them to sign up first.",
+        email:
+          "No account found for that email yet. Ask them to sign up first.",
       },
     };
   }
@@ -215,18 +235,24 @@ export async function addPropertyMember(
     if (error.message.includes("UNIT_RESIDENT_LIMIT")) {
       return {
         errors: {
-          unitId: "This flat/unit already has 2 residents assigned — the maximum allowed.",
+          unitId:
+            "This flat/unit already has 2 residents assigned — the maximum allowed.",
         },
       };
     }
     if (error.message.includes("ADMIN_GRANT_FORBIDDEN")) {
       return {
         errors: {
-          relationship: "Only an existing building admin can grant admin access.",
+          relationship:
+            "Only an existing building admin can grant admin access.",
         },
       };
     }
-    return { errors: { _form: "Could not add member (already added, or no permission)." } };
+    return {
+      errors: {
+        _form: "Could not add member (already added, or no permission).",
+      },
+    };
   }
 
   // Grant the matching role if they don't already hold it (ignore unique
@@ -238,7 +264,9 @@ export async function addPropertyMember(
   };
   const roleToGrant = roleMap[parsed.data.relationship];
   if (roleToGrant) {
-    await supabase.from("user_roles").insert({ user_id: profile.user_id, role: roleToGrant });
+    await supabase
+      .from("user_roles")
+      .insert({ user_id: profile.user_id, role: roleToGrant });
   }
 
   await logActivity({
@@ -246,9 +274,15 @@ export async function addPropertyMember(
     action: "property_member.added",
     entityType: "property",
     entityId: parsed.data.propertyId,
-    metadata: { member: profile.user_id, relationship: parsed.data.relationship },
+    metadata: {
+      member: profile.user_id,
+      relationship: parsed.data.relationship,
+    },
   });
 
   revalidatePath(`/properties/${parsed.data.propertyId}`);
-  return { success: true, message: `${profile.full_name || parsed.data.email} added.` };
+  return {
+    success: true,
+    message: `${profile.full_name || parsed.data.email} added.`,
+  };
 }

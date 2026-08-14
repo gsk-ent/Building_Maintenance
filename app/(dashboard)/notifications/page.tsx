@@ -25,12 +25,12 @@ export default async function NotificationsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900">Notifications</h1>
+        <h1 className="text-xl font-bold text-teal-deep">Notifications</h1>
         {hasUnread && (
           <form action={markAllNotificationsRead}>
             <button
               type="submit"
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="label-mono border border-line px-3 py-1.5 text-[11px] font-medium text-ink hover:bg-paper"
             >
               Mark all read
             </button>
@@ -38,14 +38,14 @@ export default async function NotificationsPage() {
         )}
       </div>
       {notifications?.length ? (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white shadow-sm">
+        <ul className="divide-y divide-line rounded-none border border-line bg-white">
           {notifications.map((n) => (
             <li
               key={n.id}
-              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${!n.read_at ? "bg-blue-50/50" : ""}`}
+              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${!n.read_at ? "bg-gold/10" : ""}`}
             >
               <div>
-                <p className="text-sm font-medium text-slate-800">
+                <p className="text-sm font-medium text-ink">
                   {n.link ? (
                     <Link href={n.link} className="hover:underline">
                       {n.title}
@@ -54,8 +54,8 @@ export default async function NotificationsPage() {
                     n.title
                   )}
                 </p>
-                {n.body && <p className="text-xs text-slate-500">{n.body}</p>}
-                <p className="text-xs text-slate-400">
+                {n.body && <p className="text-xs text-muted">{n.body}</p>}
+                <p className="text-xs text-muted">
                   {new Date(n.created_at).toLocaleString()}
                 </p>
               </div>
@@ -64,7 +64,7 @@ export default async function NotificationsPage() {
                   <input type="hidden" name="notificationId" value={n.id} />
                   <button
                     type="submit"
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                    className="rounded-none border border-line px-3 py-1.5 text-xs font-medium text-ink hover:bg-paper"
                   >
                     Mark read
                   </button>
@@ -74,7 +74,7 @@ export default async function NotificationsPage() {
           ))}
         </ul>
       ) : (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+        <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
           No notifications yet.
         </div>
       )}

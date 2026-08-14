@@ -14,7 +14,10 @@ export function RecordPaymentForm({
   amountDue: number;
   amountPaid: number;
 }) {
-  const [state, action] = useActionState<ActionState, FormData>(recordDuePayment, {});
+  const [state, action] = useActionState<ActionState, FormData>(
+    recordDuePayment,
+    {},
+  );
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="dueId" value={dueId} />
@@ -28,16 +31,22 @@ export function RecordPaymentForm({
         step="0.01"
         min={0}
         defaultValue={amountPaid || amountDue}
-        className="w-24 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+        className="w-24 rounded-none border border-line px-2 py-1 text-sm"
       />
-      <select name="paymentMethod" defaultValue="UPI" className="rounded-lg border border-slate-300 px-2 py-1 text-xs">
+      <select
+        name="paymentMethod"
+        defaultValue="UPI"
+        className="rounded-none border border-line px-2 py-1 text-xs"
+      >
         <option value="UPI">UPI</option>
         <option value="Cash">Cash</option>
         <option value="Bank Transfer">Bank Transfer</option>
         <option value="Cheque">Cheque</option>
       </select>
       <SubmitButton variant="secondary">Save</SubmitButton>
-      {state.errors?._form && <span className="text-xs text-red-600">{state.errors._form}</span>}
+      {state.errors?._form && (
+        <span className="text-xs text-bad">{state.errors._form}</span>
+      )}
     </form>
   );
 }

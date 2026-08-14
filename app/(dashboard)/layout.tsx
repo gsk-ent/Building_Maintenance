@@ -24,9 +24,11 @@ export default async function DashboardLayout({
   // the same restriction at the data layer, so there is no bypass.
   if (needsAssignment(user)) {
     return (
-      <div className="flex min-h-screen flex-col bg-slate-50">
-        <header className="border-b border-slate-200 bg-white px-4 py-3">
-          <span className="text-base font-bold text-slate-900">🏢 Building Maintenance</span>
+      <div className="flex min-h-screen flex-col bg-paper">
+        <header className="border-b-[3px] border-double border-teal-deep bg-paper px-4 py-3">
+          <span className="text-base font-bold text-teal-deep">
+            🏢 Building Maintenance
+          </span>
         </header>
         <main className="flex flex-1 items-center justify-center px-4 py-10">
           <PendingAssignment email={user.email} />
@@ -45,7 +47,10 @@ export default async function DashboardLayout({
   if (canManageProperties(user)) {
     items.push({ href: "/properties", label: "Properties" });
     items.push({ href: "/finances/dues", label: "Dues" });
-    items.push({ href: "/finances/payment-settings", label: "Payment settings" });
+    items.push({
+      href: "/finances/payment-settings",
+      label: "Payment settings",
+    });
   } else {
     items.push({ href: "/finances/my-dues", label: "My Dues" });
   }
@@ -59,11 +64,12 @@ export default async function DashboardLayout({
   }
   // The platform-wide activity log stays admin-only (not building-scoped).
   if (isAdmin(user)) {
+    items.push({ href: "/admin/users", label: "Manage users" });
     items.push({ href: "/admin/activity", label: "Activity log" });
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <DashboardNav
         items={items}
         userName={user.profile?.full_name || user.email}

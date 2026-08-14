@@ -174,6 +174,16 @@ a scheduled job with the service role (the append-only trigger blocks API
 deletes by design; run `alter table ... disable trigger` inside the
 maintenance job or use a `security definer` cleanup function).
 
+## Managing platform users
+
+**/admin/users** (platform admin only) lists every signed-up profile with
+their platform-wide roles (from `user_roles`) and every building/flat
+they're linked to. Admins can grant or revoke platform roles here directly
+— no SQL needed for day-to-day role management. A safety check blocks
+revoking the platform's last `admin` role so you can't lock yourself out.
+This is separate from per-building Members management (Properties → a
+property → Members), which links a user to one specific building/flat.
+
 ## Per-building admins
 
 Every building has its own admin tier, separate from the platform-wide
