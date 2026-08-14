@@ -1,13 +1,21 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isManager } from "@/lib/permissions";
+import { getCurrentUser, isAdmin, isManager } from "@/lib/permissions";
 import { BuildingForm } from "@/components/dashboard/building-form";
 import { UnitForm } from "@/components/dashboard/unit-form";
 import { MemberForm } from "@/components/dashboard/member-form";
 import { uuidSchema } from "@/lib/validation";
 
 export const metadata = { title: "Property — Building Maintenance" };
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  admin: "Admin",
+  manager: "Manager",
+  resident: "Resident",
+  technician: "Technician",
+  vendor: "Vendor",
+};
 
 export default async function PropertyDetailPage({
   params,
@@ -21,14 +29,24 @@ export default async function PropertyDetailPage({
   if (!user) redirect("/login");
 
   const supabase = await createClient();
-  const { data: property } = await supabase
-    .from("properties")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data: property }, { data: myAssignments }] = await Promise.all([
+    supabase.from("properties").select("*").eq("id", id).maybeSingle(),
+    supabase
+      .from("property_user_assignments")
+      .select("relationship")
+      .eq("property_id", id)
+      .eq("user_id", user.id),
+  ]);
   if (!property) notFound(); // also covers RLS denial — no data leak
 
-  const manager = isManager(user);
+  const myRelationships = (myAssignments ?? []).map((a) => a.relationship);
+  // Manages *this* building specifically — either via a platform-wide role,
+  // or by being a 'manager'/'admin' member of this particular property.
+  const canManageThisProperty =
+    isManager(user) || myRelationships.some((r) => r === "manager" || r === "admin");
+  // Only an existing building admin (or the platform admin) may grant
+  // admin access to another member of this building.
+  const canGrantAdmin = isAdmin(user) || myRelationships.includes("admin");
 
   const [{ data: buildings }, { data: requests }] = await Promise.all([
     supabase
@@ -53,7 +71,7 @@ export default async function PropertyDetailPage({
           .in("building_id", buildingIds)
           .order("unit_number")
       : Promise.resolve({ data: [] }),
-    manager
+    canManageThisProperty
       ? supabase
           .from("property_user_assignments")
           .select("id, user_id, relationship, unit_id")
@@ -69,7 +87,7 @@ export default async function PropertyDetailPage({
   }
 
   let memberProfiles = new Map<string, string>();
-  if (manager && members?.length) {
+  if (canManageThisProperty && members?.length) {
     const ids = [...new Set(members.map((m) => m.user_id))];
     const { data: profiles } = await supabase
       .from("profiles")
@@ -113,7 +131,7 @@ export default async function PropertyDetailPage({
                       ))}
                     </ul>
                   )}
-                  {manager && (
+                  {canManageThisProperty && (
                     <details className="mt-1">
                       <summary className="cursor-pointer text-xs text-blue-600">+ Add unit to {b.name}</summary>
                       <div className="mt-2">
@@ -127,7 +145,7 @@ export default async function PropertyDetailPage({
           ) : (
             <p className="mb-4 text-sm text-slate-500">No buildings yet.</p>
           )}
-          {manager && <BuildingForm propertyId={id} />}
+          {canManageThisProperty && <BuildingForm propertyId={id} />}
         </section>
 
         <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -152,7 +170,7 @@ export default async function PropertyDetailPage({
           )}
         </section>
 
-        {manager && (
+        {canManageThisProperty && (
           <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:col-span-2">
             <h2 className="mb-3 text-sm font-semibold text-slate-900">Members</h2>
             {members?.length ? (
@@ -162,8 +180,14 @@ export default async function PropertyDetailPage({
                     <span className="font-medium text-slate-800">
                       {memberProfiles.get(m.user_id) ?? m.user_id.slice(0, 8)}
                     </span>
-                    <span className="text-xs text-slate-500">
-                      {m.relationship}
+                    <span className="flex items-center gap-2 text-xs text-slate-500">
+                      {m.relationship === "admin" ? (
+                        <span className="rounded-full bg-blue-100 px-2 py-0.5 font-medium text-blue-700">
+                          Admin
+                        </span>
+                      ) : (
+                        RELATIONSHIP_LABELS[m.relationship] ?? m.relationship
+                      )}
                       {m.unit_id ? ` · Unit ${unitLabel.get(m.unit_id) ?? ""}` : ""}
                     </span>
                   </li>
@@ -175,6 +199,7 @@ export default async function PropertyDetailPage({
             <MemberForm
               propertyId={id}
               units={(units ?? []).map((u) => ({ id: u.id, label: u.unit_number }))}
+              canGrantAdmin={canGrantAdmin}
             />
           </section>
         )}

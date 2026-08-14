@@ -57,11 +57,13 @@ export async function createProperty(
     return { errors: { _form: "Could not create the property. Check your permissions." } };
   }
 
-  // Creator manages the property they created.
+  // The creator becomes the building's first admin — every building
+  // always has at least one (enforced in the database too), and only an
+  // existing building admin can grant admin access to anyone else.
   await supabase.from("property_user_assignments").insert({
     property_id: property.id,
     user_id: user.id,
-    relationship: "manager",
+    relationship: "admin",
   });
 
   await logActivity({
@@ -210,6 +212,20 @@ export async function addPropertyMember(
     unit_id: parsed.data.unitId || null,
   });
   if (error) {
+    if (error.message.includes("UNIT_RESIDENT_LIMIT")) {
+      return {
+        errors: {
+          unitId: "This flat/unit already has 2 residents assigned — the maximum allowed.",
+        },
+      };
+    }
+    if (error.message.includes("ADMIN_GRANT_FORBIDDEN")) {
+      return {
+        errors: {
+          relationship: "Only an existing building admin can grant admin access.",
+        },
+      };
+    }
     return { errors: { _form: "Could not add member (already added, or no permission)." } };
   }
 

@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isManager } from "@/lib/permissions";
+import { canManageProperties, getCurrentUser, isManager } from "@/lib/permissions";
 
 export const metadata = { title: "Properties — Building Maintenance" };
 
 export default async function PropertiesPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isManager(user)) redirect("/dashboard");
+  if (!canManageProperties(user)) redirect("/dashboard");
 
   const supabase = await createClient();
   const { data: properties } = await supabase
@@ -20,12 +20,14 @@ export default async function PropertiesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Properties</h1>
-        <Link
-          href="/properties/new"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-        >
-          + Add property
-        </Link>
+        {isManager(user) && (
+          <Link
+            href="/properties/new"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            + Add property
+          </Link>
+        )}
       </div>
       {properties?.length ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

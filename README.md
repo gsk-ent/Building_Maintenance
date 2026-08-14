@@ -174,6 +174,35 @@ a scheduled job with the service role (the append-only trigger blocks API
 deletes by design; run `alter table ... disable trigger` inside the
 maintenance job or use a `security definer` cleanup function).
 
+## Per-building admins
+
+Every building has its own admin tier, separate from the platform-wide
+`admin` role:
+
+- The **creator of a property automatically becomes its first admin**
+  (`createProperty` in `lib/actions/properties.ts`) — every building always
+  has at least one, enforced by a database trigger that blocks demoting or
+  removing the last admin (`enforce_admin_relationship_change()`,
+  migration 011).
+- A building admin can grant admin access to other members of **that same
+  building** via Properties → a property → Members → role "Admin (this
+  building)" — a plain manager cannot grant admin, only an existing admin
+  (or the platform admin) can. This is enforced in the database, not just
+  the UI, so it holds even if someone calls the API directly.
+- Building admin status is independent of the platform-wide `admin`/
+  `property_manager` roles in `user_roles` — it only grants rights over the
+  specific building(s) they're an admin of (`manages_property()`,
+  `is_property_admin()`). It does **not** let them create brand-new
+  properties — that stays a platform-wide `property_manager`/`admin`
+  capability, matching who is allowed to onboard a new building in the
+  first place.
+- Building admins get everything a building manager gets (buildings/units/
+  members management, dues, expenses, payment settings) **plus** access to
+  that building's Reports — scoped automatically to buildings they
+  administer (RLS already limits the property list; platform admins still
+  see every building). The platform-wide Activity Log stays platform-admin
+  only.
+
 ## Finances (dues, expenses, UPI payments)
 
 A flat-wise finance module sits alongside the maintenance workflow:
@@ -183,7 +212,10 @@ A flat-wise finance module sits alongside the maintenance workflow:
   unit's `default_monthly_amount`, then record payments as they come in
   (`/finances/dues`).
 - **Expenses** (`expenses`, `expense_categories`) — building running costs
-  (watchman salary, electricity, lift maintenance, etc.), manager/admin only
+  (watchman salary, electricity, lift maintenance, etc.). Visible to every
+  member assigned to the property, not just managers — full transparency
+  into what dues fund, with category, amount, description and the date it
+  was recorded. Only managers/admins can add or edit entries
   (`/finances/expenses`).
 - **Payment settings** (`property_payment_settings`) — UPI ID, UPI number and
   bank details, configured once per property (`/finances/payment-settings`).
@@ -200,6 +232,19 @@ A flat-wise finance module sits alongside the maintenance workflow:
   a report — no extra PDF library or server dependency required.
 
 ### Members & units
+
+New signups (and technicians/vendors, until added) land on a blocking
+"Awaiting flat assignment" screen and see nothing else — no maintenance
+requests, dues or expenses — until a manager adds them under Members. This
+is enforced twice: the app layout (`app/(dashboard)/layout.tsx`,
+`needsAssignment()` in `lib/permissions/core.ts`) blocks the UI, and RLS
+independently returns zero rows to an unmapped user regardless of what the
+frontend does. Admins and managers are exempt from the gate (managers need
+to reach "Add property" before they have an assignment of their own).
+
+A unit/flat can have **at most 2 residents** — enforced by a database
+trigger (`enforce_resident_unit_cap()`, migration 010) that rejects a 3rd
+resident assignment for the same unit no matter how the row is inserted.
 
 Before dues or per-resident visibility work, a manager must:
 1. Add units under a building (**Properties → a property → Add unit**),
@@ -219,6 +264,18 @@ Private bucket `maintenance-files` (no public access). Path convention
 `<property_id>/<request_id>/<file>`; read access requires membership of the
 property (or manager role), deletes restricted to the uploader. Metadata rows
 live in `public.documents`.
+
+## Responsive design
+
+Built mobile-first with Tailwind: a hamburger nav below `lg` (1024px) that
+switches to a horizontally-scrollable inline row above it (so an admin's
+~10 nav items never break the layout on tablet-width screens), every data
+table wrapped in `overflow-x-auto`, single-column forms below `sm` that
+expand to grids above it, and an explicit `viewport` export
+(`app/layout.tsx`) with `width=device-width`. The OS dark-mode media query
+was removed from `globals.css` since the UI has no dark theme yet — leaving
+it in caused a mismatched half-dark appearance on phones that default to
+dark mode.
 
 ## Testing
 

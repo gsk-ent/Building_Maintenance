@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isAdmin } from "@/lib/permissions";
+import { canViewReports, getCurrentUser } from "@/lib/permissions";
 import { PrintButton } from "@/components/finance/print-button";
 import { Bar } from "@/components/finance/bar";
 import { dueStatus, formatCurrency, formatPeriod } from "@/lib/finance/dues";
@@ -30,7 +30,7 @@ export default async function ReportPage({
 
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user)) redirect("/dashboard");
+  if (!canViewReports(user)) redirect("/dashboard");
 
   const sp = await searchParams;
   const supabase = await createClient();
@@ -100,7 +100,7 @@ async function CollectionReport({ propertyId, periodDate, period }: { propertyId
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-600">Period: {formatPeriod(period)}</p>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
             <th className="py-1">Unit</th>
@@ -134,7 +134,7 @@ async function CollectionReport({ propertyId, periodDate, period }: { propertyId
             <td />
           </tr>
         </tfoot>
-      </table>
+      </table></div>
     </div>
   );
 }
@@ -160,7 +160,7 @@ async function OutstandingDuesReport({ propertyId }: { propertyId: string }) {
 
   return (
     <div className="space-y-4">
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
             <th className="py-1">Unit</th>
@@ -190,7 +190,7 @@ async function OutstandingDuesReport({ propertyId }: { propertyId: string }) {
             </tr>
           </tfoot>
         )}
-      </table>
+      </table></div>
     </div>
   );
 }
@@ -220,7 +220,7 @@ async function ExpenseReport({ propertyId, periodDate, period }: { propertyId: s
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-600">Period: {period}</p>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto"><table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
             <th className="py-1">Category</th>
@@ -250,7 +250,7 @@ async function ExpenseReport({ propertyId, periodDate, period }: { propertyId: s
             </tr>
           </tfoot>
         )}
-      </table>
+      </table></div>
     </div>
   );
 }

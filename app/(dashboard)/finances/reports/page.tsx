@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isAdmin } from "@/lib/permissions";
+import { canViewReports, getCurrentUser } from "@/lib/permissions";
 
 export const metadata = { title: "Reports — Building Maintenance" };
 
@@ -15,7 +15,7 @@ const REPORTS = [
 export default async function ReportsIndexPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isAdmin(user)) redirect("/dashboard");
+  if (!canViewReports(user)) redirect("/dashboard");
 
   const supabase = await createClient();
   const { data: properties } = await supabase.from("properties").select("id, name").order("name");

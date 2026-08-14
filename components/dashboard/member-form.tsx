@@ -8,9 +8,12 @@ import { Field, FormError, FormSuccess, Select, SubmitButton } from "@/component
 export function MemberForm({
   propertyId,
   units,
+  canGrantAdmin,
 }: {
   propertyId: string;
   units: { id: string; label: string }[];
+  /** Only an existing building admin (or platform admin) may grant admin access. */
+  canGrantAdmin: boolean;
 }) {
   const [state, action] = useActionState<ActionState, FormData>(addPropertyMember, {});
   return (
@@ -19,10 +22,11 @@ export function MemberForm({
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
       <Field label="Member's email" name="email" type="email" error={state.errors?.email} />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Select label="Role" name="relationship" defaultValue="resident" error={state.errors?.relationship}>
           <option value="resident">Resident</option>
           <option value="manager">Manager</option>
+          {canGrantAdmin && <option value="admin">Admin (this building)</option>}
           <option value="technician">Technician</option>
           <option value="vendor">Vendor</option>
         </Select>
@@ -38,6 +42,9 @@ export function MemberForm({
       <p className="text-xs text-slate-500">
         They must already have an account (signed up or created in Supabase Auth) —
         this links their existing account to the property.
+        {canGrantAdmin
+          ? " As a building admin, you can also grant admin access to another member."
+          : " Only a building admin can grant admin access."}
       </p>
       <SubmitButton variant="secondary">Add member</SubmitButton>
     </form>

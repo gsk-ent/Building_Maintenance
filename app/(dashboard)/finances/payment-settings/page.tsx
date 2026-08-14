@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isManager } from "@/lib/permissions";
+import { canManageProperties, getCurrentUser } from "@/lib/permissions";
 import { PaymentSettingsForm } from "@/components/finance/payment-settings-form";
 import { PropertyPicker } from "@/components/finance/property-picker";
 
@@ -12,7 +12,7 @@ export default async function PaymentSettingsPage({
   searchParams: Promise<{ property?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !isManager(user)) redirect("/dashboard");
+  if (!user || !canManageProperties(user)) redirect("/dashboard");
 
   const supabase = await createClient();
   const { data: properties } = await supabase.from("properties").select("id, name").order("name");

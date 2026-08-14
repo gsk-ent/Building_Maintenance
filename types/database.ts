@@ -89,7 +89,7 @@ export type PropertyUserAssignment = {
   id: string;
   property_id: string;
   user_id: string;
-  relationship: "manager" | "resident" | "technician" | "vendor";
+  relationship: "admin" | "manager" | "resident" | "technician" | "vendor";
   unit_id: string | null;
   created_at: string;
 }

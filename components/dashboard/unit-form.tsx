@@ -12,7 +12,7 @@ export function UnitForm({ buildingId }: { buildingId: string }) {
       <input type="hidden" name="buildingId" value={buildingId} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <Field label="Unit #" name="unitNumber" error={state.errors?.unitNumber} />
         <Field label="Floor" name="floor" type="number" required={false} error={state.errors?.floor} />
         <Field label="Monthly due (₹)" name="defaultMonthlyAmount" type="number" required={false} error={state.errors?.defaultMonthlyAmount} />

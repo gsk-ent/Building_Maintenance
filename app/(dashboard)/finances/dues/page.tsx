@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, isManager } from "@/lib/permissions";
+import { canManageProperties, getCurrentUser } from "@/lib/permissions";
 import { PropertyPicker } from "@/components/finance/property-picker";
 import { GenerateDuesForm } from "@/components/finance/generate-dues-form";
 import { RecordPaymentForm } from "@/components/finance/record-payment-form";
@@ -24,7 +24,7 @@ export default async function DuesPage({
   searchParams: Promise<{ property?: string; building?: string; period?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !isManager(user)) redirect("/dashboard");
+  if (!user || !canManageProperties(user)) redirect("/dashboard");
 
   const supabase = await createClient();
   const { data: properties } = await supabase.from("properties").select("id, name").order("name");

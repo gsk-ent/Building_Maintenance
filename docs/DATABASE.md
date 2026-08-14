@@ -70,6 +70,37 @@ DEFINER` + `STABLE`, so policies can consult `user_roles` /
 | notifications | own | own | own | own |
 | user_activity | own read | own read | own read | read all |
 
+### Per-building admins
+
+`property_user_assignments.relationship` accepts `'admin'` alongside
+`manager`/`resident`/`technician`/`vendor` (migration 011). `admin` is a
+strict superset of `manager` for RLS purposes (`manages_property()` treats
+both the same) but carries two extra guarantees enforced by
+`enforce_admin_relationship_change()`:
+
+1. Only an existing admin of that building (or the platform admin) can
+   insert/change a row to/from `relationship = 'admin'` — a plain manager
+   cannot self-promote or promote someone else. The sole exception is
+   bootstrapping a brand-new building: its creator may self-assign as its
+   first admin, since there is no one else yet to grant it.
+2. A building can never drop to zero admins — demoting or deleting the
+   last `admin` row for a property is rejected.
+
+Both checks are skipped when `auth.uid()` is null (service-role/SQL-editor
+context), so direct database administration and this migration's own
+backfill (which promotes each pre-existing property's earliest manager, or
+its `created_by`, to admin) are unaffected.
+
+### Access gating
+
+`property_user_assignments` is the hinge the whole authorization model
+turns on. A user with zero rows here (any relationship) sees nothing beyond
+their own profile — enforced at the app layer (blocking screen) and
+independently by RLS (every property/request/dues/expense policy checks
+`is_assigned_to_property()` or `resides_in_unit()`, both of which query this
+table). `enforce_resident_unit_cap()` (migration 010) rejects a 3rd
+`resident` assignment for the same `unit_id`.
+
 ### Finance access
 
 Residents may read `monthly_dues` rows only for units where they hold a

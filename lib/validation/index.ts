@@ -168,6 +168,6 @@ export const unitSchema = z.object({
 export const addMemberSchema = z.object({
   propertyId: uuid(),
   email: emailSchema,
-  relationship: z.enum(["manager", "resident", "technician", "vendor"]),
+  relationship: z.enum(["admin", "manager", "resident", "technician", "vendor"]),
   unitId: uuid().optional().or(z.literal("")),
 });
