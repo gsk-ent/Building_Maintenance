@@ -1,35 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f3ea;
-  --foreground: #1c2b2a;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 /*
- * Vintage-ledger palette, lifted from the original single-file app
- * (BuildingMaintenanceSuite). Registered as Tailwind v4 theme tokens so
- * they're usable directly as utilities: bg-paper, text-teal-deep,
- * border-line, etc.
+ * Direction A — Clean Modern SaaS (2026-11-19 redesign).
+ * White / slate-50 surfaces, slate-900 text, teal-deep #1c3a38 as the
+ * single brand accent. The token *names* (paper, line, muted, …) are kept
+ * from the old theme so existing utilities keep working, but every value
+ * is new. All text colours pass WCAG AA (4.5:1) on white / slate-50:
+ * muted #475569 ≈ 7.0:1, gold #92400e ≈ 6.5:1, rust #9a3412 ≈ 5.6:1.
  */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --color-paper: #f6f3ea;
-  --color-paper-2: #ece6d6;
-  --color-line: #d8cfb8;
-  --color-ink: #1c2b2a;
+  --color-paper: #f8fafc;
+  --color-paper-2: #f1f5f9;
+  --color-line: #e2e8f0;
+  --color-ink: #0f172a;
   --color-teal: #2f5d5a;
   --color-teal-deep: #1c3a38;
-  --color-rust: #a85c32;
-  --color-good: #3c7a4e;
-  --color-bad: #b23a2f;
-  --color-gold: #b8912f;
-  --color-muted: #8a8a7a;
+  --color-rust: #9a3412;
+  --color-good: #15803d;
+  --color-bad: #b91c1c;
+  --color-gold: #92400e;
+  --color-muted: #475569;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: "Courier New", "Courier", monospace;
-  --font-serif: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 }
 
 html {
@@ -39,20 +41,48 @@ html {
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
-/* A recurring "ledger label" treatment: small, uppercase, monospace,
-   letter-spaced, muted — used for field labels, section eyebrows, badges. */
+/*
+ * Eyebrow / section-label treatment. Same class name as the old theme's
+ * `.label-mono` (kept so existing markup keeps working), but the Courier
+ * typewriter treatment is gone: Inter, semibold, 12px, uppercase, slate.
+ */
 .label-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--color-muted);
 }
 
-/* Prevent horizontal scroll from any accidental overflow on small screens. */
-html, body {
-  max-width: 100%;
-  overflow-x: hidden;
+/* Visible keyboard focus everywhere, not just on form controls. */
+:focus-visible {
+  outline: 2px solid var(--color-teal-deep);
+  outline-offset: 2px;
+}
+
+/* Skeleton shimmer for loading states. */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-paper-2) 25%,
+    #ffffff 50%,
+    var(--color-paper-2) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease infinite;
 }

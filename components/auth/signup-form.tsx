@@ -42,7 +42,7 @@ export function SignupForm() {
         autoComplete="new-password"
         error={state.errors?.confirmPassword}
       />
-      <p className="text-xs text-muted">
+      <p className="text-xs text-slate-500">
         At least 10 characters with upper- and lowercase letters and a number.
       </p>
       <SubmitButton>Create account</SubmitButton>

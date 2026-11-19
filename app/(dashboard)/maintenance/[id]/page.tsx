@@ -5,6 +5,15 @@ import { assignRequest, updateRequestStatus } from "@/lib/actions/maintenance";
 import { CommentForm } from "@/components/maintenance/comment-form";
 import { WorkOrderForm } from "@/components/maintenance/work-order-form";
 import { uuidSchema } from "@/lib/validation";
+import { formatStatus } from "@/lib/format";
+import { buttonClasses } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Badge,
+  PriorityBadge,
+  RequestStatusBadge,
+} from "@/components/ui/badge";
+import { Select } from "@/components/ui/form";
 
 export const metadata = { title: "Request — Building Maintenance" };
 
@@ -92,69 +101,64 @@ export default async function RequestDetailPage({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs uppercase tracking-wide text-muted">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           {property?.name ?? "Property"}
         </p>
-        <h1 className="text-xl font-bold text-teal-deep">{request.title}</h1>
-        <p className="mt-1 text-sm text-muted">
-          Status: <strong>{request.status.replace("_", "")}</strong> · Priority:
-          {""}
-          <strong>{request.priority}</strong> · Created{""}
-          {new Date(request.created_at).toLocaleString()}
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+          {request.title}
+        </h1>
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+          <RequestStatusBadge status={request.status} />
+          <PriorityBadge priority={request.priority} />
+          <span>Created {new Date(request.created_at).toLocaleString()}</span>
         </p>
       </div>
 
-      <section className="rounded-none border border-line bg-white p-4">
-        <h2 className="mb-2 text-sm font-semibold text-ink">Description</h2>
-        <p className="whitespace-pre-wrap text-sm text-ink">
-          {request.description}
-        </p>
-      </section>
+      <Card>
+        <CardHeader title="Description" />
+        <CardContent>
+          <p className="whitespace-pre-wrap text-sm text-slate-700">
+            {request.description}
+          </p>
+        </CardContent>
+      </Card>
 
       {canUpdateStatus && NEXT_STATUSES[request.status]?.length > 0 && (
-        <section className="rounded-none border border-line bg-white p-4">
-          <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-            Update status
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {NEXT_STATUSES[request.status].map((s) => (
-              <form key={s} action={updateRequestStatus}>
-                <input type="hidden" name="requestId" value={id} />
-                <input type="hidden" name="status" value={s} />
-                <button
-                  type="submit"
-                  className="label-mono border border-line bg-white px-3 py-1.5 text-[11px] font-medium text-ink hover:bg-paper"
-                >
-                  Mark {s.replace("_", "")}
-                </button>
-              </form>
-            ))}
-          </div>
-        </section>
+        <Card>
+          <CardHeader title="Update status" />
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {NEXT_STATUSES[request.status].map((s) => (
+                <form key={s} action={updateRequestStatus}>
+                  <input type="hidden" name="requestId" value={id} />
+                  <input type="hidden" name="status" value={s} />
+                  <button
+                    type="submit"
+                    className={buttonClasses("secondary", "sm")}
+                  >
+                    Mark {formatStatus(s)}
+                  </button>
+                </form>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {manager && technicianOptions.length > 0 && (
-        <section className="rounded-none border border-line bg-white p-4">
-          <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-            Assign
-          </h2>
-          <form
-            action={assignRequest}
-            className="flex flex-wrap items-end gap-3"
-          >
-            <input type="hidden" name="requestId" value={id} />
-            <div>
-              <label
-                htmlFor="assigneeId"
-                className="block text-sm font-medium text-ink"
-              >
-                Assign to
-              </label>
-              <select
-                id="assigneeId"
+        <Card>
+          <CardHeader title="Assign" />
+          <CardContent>
+            <form
+              action={assignRequest}
+              className="flex flex-wrap items-end gap-3"
+            >
+              <input type="hidden" name="requestId" value={id} />
+              <Select
+                label="Assign to"
                 name="assigneeId"
                 defaultValue={request.assigned_to ?? ""}
-                className="mt-1 rounded-none border border-line bg-white px-3 py-2 text-sm"
+                wrapperClassName="min-w-56 flex-1"
               >
                 <option value="" disabled>
                   Choose…
@@ -164,62 +168,61 @@ export default async function RequestDetailPage({
                     {t.label}
                   </option>
                 ))}
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="label-mono border border-teal-deep bg-teal-deep px-4 py-2.5 text-[11px] text-white hover:bg-teal"
-            >
-              Assign
-            </button>
-          </form>
-        </section>
+              </Select>
+              <button type="submit" className={buttonClasses("primary", "md")}>
+                Assign
+              </button>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      <section className="rounded-none border border-line bg-white p-4">
-        <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-          Work orders
-        </h2>
-        {workOrders?.length ? (
-          <ul className="mb-4 divide-y divide-line">
-            {workOrders.map((w) => (
-              <li
-                key={w.id}
-                className="flex items-center justify-between py-2 text-sm"
-              >
-                <span className="font-medium text-ink">{w.title}</span>
-                <span className="text-xs text-muted">{w.status}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mb-4 text-sm text-muted">No work orders yet.</p>
-        )}
-        {manager && (
-          <WorkOrderForm requestId={id} technicians={technicianOptions} />
-        )}
-      </section>
+      <Card>
+        <CardHeader title="Work orders" />
+        <CardContent>
+          {workOrders?.length ? (
+            <ul className="mb-4 divide-y divide-slate-200">
+              {workOrders.map((w) => (
+                <li
+                  key={w.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm first:pt-0"
+                >
+                  <span className="font-medium text-slate-900">{w.title}</span>
+                  <Badge tone="neutral">{formatStatus(w.status)}</Badge>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mb-4 text-sm text-slate-500">No work orders yet.</p>
+          )}
+          {manager && (
+            <WorkOrderForm requestId={id} technicians={technicianOptions} />
+          )}
+        </CardContent>
+      </Card>
 
-      <section className="rounded-none border border-line bg-white p-4">
-        <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-          Comments ({comments?.length ?? 0})
-        </h2>
-        {comments?.length ? (
-          <ul className="mb-4 space-y-3">
-            {comments.map((c) => (
-              <li key={c.id} className="rounded-none bg-paper p-3">
-                <p className="whitespace-pre-wrap text-sm text-ink">{c.body}</p>
-                <p className="mt-1 text-xs text-muted">
-                  {new Date(c.created_at).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mb-4 text-sm text-muted">No comments yet.</p>
-        )}
-        <CommentForm requestId={id} />
-      </section>
+      <Card>
+        <CardHeader title={`Comments (${comments?.length ?? 0})`} />
+        <CardContent>
+          {comments?.length ? (
+            <ul className="mb-4 space-y-3">
+              {comments.map((c) => (
+                <li key={c.id} className="rounded-lg bg-slate-50 p-3">
+                  <p className="whitespace-pre-wrap text-sm text-slate-700">
+                    {c.body}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {new Date(c.created_at).toLocaleString()}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mb-4 text-sm text-slate-500">No comments yet.</p>
+          )}
+          <CommentForm requestId={id} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export function WorkOrderForm({
     {}
   );
   return (
-    <form action={action} className="space-y-3" noValidate>
+    <form action={action} className="space-y-4" noValidate>
       <input type="hidden" name="requestId" value={requestId} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
@@ -41,7 +41,7 @@ export function WorkOrderForm({
         required={false}
         error={state.errors?.instructions}
       />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Select
           label="Assign to"
           name="assignedTo"

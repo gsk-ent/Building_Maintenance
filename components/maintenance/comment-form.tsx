@@ -14,7 +14,7 @@ export function CommentForm({ requestId }: { requestId: string }) {
   }, [state.success]);
 
   return (
-    <form ref={formRef} action={action} className="space-y-3" noValidate>
+    <form ref={formRef} action={action} className="space-y-4" noValidate>
       <input type="hidden" name="requestId" value={requestId} />
       <FormError message={state.errors?._form ?? state.errors?.body} />
       <TextArea label="Add a comment" name="body" rows={3} />

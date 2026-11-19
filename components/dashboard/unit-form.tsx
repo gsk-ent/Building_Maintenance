@@ -13,11 +13,11 @@ import {
 export function UnitForm({ buildingId }: { buildingId: string }) {
   const [state, action] = useActionState<ActionState, FormData>(createUnit, {});
   return (
-    <form action={action} className="space-y-2" noValidate>
+    <form action={action} className="space-y-4" noValidate>
       <input type="hidden" name="buildingId" value={buildingId} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Field
           label="Unit #"
           name="unitNumber"

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ButtonLink } from "@/components/ui/button";
 
 export function PropertyPicker({
   properties,
@@ -13,17 +13,15 @@ export function PropertyPicker({
   return (
     <nav aria-label="Select property" className="flex flex-wrap gap-2">
       {properties.map((p) => (
-        <Link
+        <ButtonLink
           key={p.id}
           href={`${basePath}?property=${p.id}`}
-          className={`rounded-sm px-3 py-1 text-xs font-medium ${
-            activeId === p.id
-              ? "bg-teal-deep text-white"
-              : "bg-white text-ink border border-line"
-          }`}
+          variant={activeId === p.id ? "primary" : "secondary"}
+          size="sm"
+          aria-current={activeId === p.id ? "true" : undefined}
         >
           {p.name}
-        </Link>
+        </ButtonLink>
       ))}
     </nav>
   );

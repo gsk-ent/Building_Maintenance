@@ -19,6 +19,32 @@ export function outstandingBalance(
   );
 }
 
+/**
+ * Add a new payment to what has already been paid for a due.
+ *
+ * Previously recordDuePayment *overwrote* amount_paid with the submitted
+ * value, so a second partial payment erased the first. Payments now
+ * accumulate, and the new total is capped at amount_due — a payment that
+ * would exceed the outstanding balance is rejected with a plain message
+ * instead of being silently clamped.
+ */
+export function accumulatePayment(
+  currentPaid: number,
+  amountDue: number,
+  payment: number
+): { newTotal: number } | { error: string } {
+  if (!Number.isFinite(payment) || payment <= 0) {
+    return { error: "Enter an amount greater than ₹0." };
+  }
+  const newTotal = currentPaid + payment;
+  if (newTotal > amountDue) {
+    return {
+      error: `Payment of ${formatCurrency(payment)} would exceed the outstanding balance of ${formatCurrency(Math.max(0, amountDue - currentPaid))}.`,
+    };
+  }
+  return { newTotal };
+}
+
 export function formatPeriod(period: string): string {
   const [y, m] = period.split("-");
   const date = new Date(Number(y), Number(m) - 1, 1);

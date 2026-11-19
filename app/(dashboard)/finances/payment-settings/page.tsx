@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
+import { Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { canManageProperties, getCurrentUser } from "@/lib/permissions";
 import { PaymentSettingsForm } from "@/components/finance/payment-settings-form";
 import { PropertyPicker } from "@/components/finance/property-picker";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata = { title: "Payment settings — Building Maintenance" };
 
@@ -21,8 +25,13 @@ export default async function PaymentSettingsPage({
     .order("name");
   if (!properties?.length) {
     return (
-      <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
-        Add a property first.
+      <div className="mx-auto max-w-xl space-y-6">
+        <PageHeader title="Payment settings" />
+        <EmptyState
+          icon={Building2}
+          title="Add a property first"
+          description="Payment details are set per property, so create one before configuring them."
+        />
       </div>
     );
   }
@@ -40,23 +49,25 @@ export default async function PaymentSettingsPage({
     .maybeSingle();
 
   return (
-    <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-xl font-bold text-teal-deep">Payment settings</h1>
+    <div className="mx-auto max-w-xl space-y-6">
+      <PageHeader
+        title="Payment settings"
+        description="These details are shown to residents on their “My Dues” page, with a scannable UPI QR code."
+      />
       <PropertyPicker
         properties={properties}
         basePath="/finances/payment-settings"
         activeId={propertyId}
       />
-      <p className="text-sm text-muted">
-        These details are shown to residents on their &quot;My Dues&quot; page,
-        with a scannable UPI QR code.
-      </p>
-      <div className="rounded-none border border-line bg-white p-5">
-        <PaymentSettingsForm
-          propertyId={propertyId}
-          settings={settings ?? null}
-        />
-      </div>
+      <Card>
+        <CardHeader title="Payment details" />
+        <CardContent>
+          <PaymentSettingsForm
+            propertyId={propertyId}
+            settings={settings ?? null}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

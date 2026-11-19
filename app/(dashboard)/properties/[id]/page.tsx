@@ -6,6 +6,10 @@ import { BuildingForm } from "@/components/dashboard/building-form";
 import { UnitForm } from "@/components/dashboard/unit-form";
 import { MemberForm } from "@/components/dashboard/member-form";
 import { uuidSchema } from "@/lib/validation";
+import { formatStatus } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata = { title: "Property — Building Maintenance" };
 
@@ -114,145 +118,148 @@ export default async function PropertyDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-teal-deep">{property.name}</h1>
-        <p className="text-sm text-muted">
-          {property.address_line1}
-          {property.address_line2 ? `, ${property.address_line2}` : ""},{""}
-          {property.city}, {property.country}
-        </p>
-      </div>
+      <PageHeader
+        title={property.name}
+        description={`${property.address_line1}${property.address_line2 ? `, ${property.address_line2}` : ""}, ${property.city}, ${property.country}`}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-none border border-line bg-white p-4">
-          <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-            Buildings &amp; units
-          </h2>
-          {buildings?.length ? (
-            <ul className="mb-4 space-y-3">
-              {buildings.map((b) => (
-                <li key={b.id}>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-ink">{b.name}</span>
-                    <span className="text-xs text-muted">
-                      {b.floors_count != null ? `${b.floors_count} floors` : ""}
-                    </span>
-                  </div>
-                  {(unitsByBuilding.get(b.id) ?? []).length > 0 && (
-                    <ul className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-                      {(unitsByBuilding.get(b.id) ?? [])!.map((u) => {
-                        const owners = ownersByUnit.get(u.id) ?? [];
-                        return (
-                          <li
-                            key={u.id}
-                            className="flex items-center justify-between rounded-none bg-paper px-2.5 py-1.5 text-xs"
-                          >
-                            <span>
-                              <span className="font-semibold text-ink">
-                                Flat {u.unit_number}
+        <Card>
+          <CardHeader title="Buildings & units" />
+          <CardContent>
+            {buildings?.length ? (
+              <ul className="mb-4 space-y-3">
+                {buildings.map((b) => (
+                  <li key={b.id}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-slate-900">
+                        {b.name}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {b.floors_count != null
+                          ? `${b.floors_count} floors`
+                          : ""}
+                      </span>
+                    </div>
+                    {(unitsByBuilding.get(b.id) ?? []).length > 0 && (
+                      <ul className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                        {(unitsByBuilding.get(b.id) ?? [])!.map((u) => {
+                          const owners = ownersByUnit.get(u.id) ?? [];
+                          return (
+                            <li
+                              key={u.id}
+                              className="flex items-center justify-between rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs"
+                            >
+                              <span>
+                                <span className="font-semibold text-slate-900">
+                                  Flat {u.unit_number}
+                                </span>
+                                <span className="ml-1.5 text-slate-500">
+                                  {owners.length
+                                    ? owners.join(",")
+                                    : "Unassigned"}
+                                </span>
                               </span>
-                              <span className="ml-1.5 text-muted">
-                                {owners.length
-                                  ? owners.join(",")
-                                  : "Unassigned"}
-                              </span>
-                            </span>
-                            {u.default_monthly_amount != null && (
-                              <span className="shrink-0 text-muted">
-                                ₹{u.default_monthly_amount}
-                              </span>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                  {canManageThisProperty && (
-                    <details className="mt-1">
-                      <summary className="cursor-pointer text-xs text-teal-deep">
-                        + Add unit to {b.name}
-                      </summary>
-                      <div className="mt-2">
-                        <UnitForm buildingId={b.id} />
-                      </div>
-                    </details>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mb-4 text-sm text-muted">No buildings yet.</p>
-          )}
-          {canManageThisProperty && <BuildingForm propertyId={id} />}
-        </section>
+                              {u.default_monthly_amount != null && (
+                                <span className="shrink-0 text-slate-500">
+                                  ₹{u.default_monthly_amount}
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    {canManageThisProperty && (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-xs font-medium text-teal-deep">
+                          + Add unit to {b.name}
+                        </summary>
+                        <div className="mt-2">
+                          <UnitForm buildingId={b.id} />
+                        </div>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mb-4 text-sm text-slate-500">No buildings yet.</p>
+            )}
+            {canManageThisProperty && <BuildingForm propertyId={id} />}
+          </CardContent>
+        </Card>
 
-        <section className="rounded-none border border-line bg-white p-4">
-          <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-            Recent maintenance requests
-          </h2>
-          {requests?.length ? (
-            <ul className="divide-y divide-line">
-              {requests.map((r) => (
-                <li key={r.id} className="py-2">
-                  <Link
-                    href={`/maintenance/${r.id}`}
-                    className="text-sm font-medium text-ink hover:underline"
-                  >
-                    {r.title}
-                  </Link>
-                  <span className="ml-2 text-xs text-muted">
-                    {r.status} · {r.priority}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted">No requests for this property.</p>
-          )}
-        </section>
-
-        {canManageThisProperty && (
-          <section className="rounded-none border border-line bg-white p-4 lg:col-span-2">
-            <h2 className="label-mono mb-3 border-b border-line pb-1.5 text-[11px] text-rust">
-              Members
-            </h2>
-            {members?.length ? (
-              <ul className="mb-4 divide-y divide-line">
-                {members.map((m) => (
-                  <li
-                    key={m.id}
-                    className="flex items-center justify-between py-2 text-sm"
-                  >
-                    <span className="font-medium text-ink">
-                      {memberProfiles.get(m.user_id) ?? m.user_id.slice(0, 8)}
-                    </span>
-                    <span className="flex items-center gap-2 text-xs text-muted">
-                      {m.relationship === "admin" ? (
-                        <span className="rounded-sm bg-teal-deep/10 px-2 py-0.5 font-medium text-teal-deep">
-                          Admin
-                        </span>
-                      ) : (
-                        (RELATIONSHIP_LABELS[m.relationship] ?? m.relationship)
-                      )}
-                      {m.unit_id
-                        ? ` · Unit ${unitLabel.get(m.unit_id) ?? ""}`
-                        : ""}
+        <Card>
+          <CardHeader title="Recent maintenance requests" />
+          <CardContent>
+            {requests?.length ? (
+              <ul className="divide-y divide-slate-200">
+                {requests.map((r) => (
+                  <li key={r.id} className="py-2 first:pt-0 last:pb-0">
+                    <Link
+                      href={`/maintenance/${r.id}`}
+                      className="text-sm font-medium text-slate-900 hover:underline"
+                    >
+                      {r.title}
+                    </Link>
+                    <span className="ml-2 text-xs text-slate-500">
+                      {formatStatus(r.status)} · {formatStatus(r.priority)}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mb-4 text-sm text-muted">No members added yet.</p>
+              <p className="text-sm text-slate-500">
+                No requests for this property.
+              </p>
             )}
-            <MemberForm
-              propertyId={id}
-              units={(units ?? []).map((u) => ({
-                id: u.id,
-                label: u.unit_number,
-              }))}
-              canGrantAdmin={canGrantAdmin}
-            />
-          </section>
+          </CardContent>
+        </Card>
+
+        {canManageThisProperty && (
+          <Card className="lg:col-span-2">
+            <CardHeader title="Members" />
+            <CardContent>
+              {members?.length ? (
+                <ul className="mb-4 divide-y divide-slate-200">
+                  {members.map((m) => (
+                    <li
+                      key={m.id}
+                      className="flex items-center justify-between py-2 text-sm first:pt-0"
+                    >
+                      <span className="font-medium text-slate-900">
+                        {memberProfiles.get(m.user_id) ?? m.user_id.slice(0, 8)}
+                      </span>
+                      <span className="flex items-center gap-2 text-xs text-slate-500">
+                        {m.relationship === "admin" ? (
+                          <Badge tone="teal">Admin</Badge>
+                        ) : (
+                          (RELATIONSHIP_LABELS[m.relationship] ??
+                          m.relationship)
+                        )}
+                        {m.unit_id
+                          ? ` · Unit ${unitLabel.get(m.unit_id) ?? ""}`
+                          : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mb-4 text-sm text-slate-500">
+                  No members added yet.
+                </p>
+              )}
+              <MemberForm
+                propertyId={id}
+                units={(units ?? []).map((u) => ({
+                  id: u.id,
+                  label: u.unit_number,
+                }))}
+                canGrantAdmin={canGrantAdmin}
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

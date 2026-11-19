@@ -1,18 +1,18 @@
 import { redirect } from "next/navigation";
+import { Building2, ReceiptText } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { canManageProperties, getCurrentUser } from "@/lib/permissions";
 import { PropertyPicker } from "@/components/finance/property-picker";
 import { GenerateDuesForm } from "@/components/finance/generate-dues-form";
 import { RecordPaymentForm } from "@/components/finance/record-payment-form";
 import { dueStatus, formatCurrency, formatPeriod } from "@/lib/finance/dues";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { DueStatusBadge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button, ButtonLink } from "@/components/ui/button";
 
 export const metadata = { title: "Dues — Building Maintenance" };
-
-const STATUS_BADGE: Record<string, string> = {
-  paid: "bg-good/10 text-good",
-  partial: "bg-gold/15 text-gold",
-  pending: "bg-bad/10 text-bad",
-};
 
 function currentPeriod() {
   return new Date().toISOString().slice(0, 7);
@@ -37,8 +37,14 @@ export default async function DuesPage({
     .order("name");
   if (!properties?.length) {
     return (
-      <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
-        Add a property first.
+      <div className="space-y-6">
+        <PageHeader title="Dues" />
+        <EmptyState
+          icon={Building2}
+          title="Add a property first"
+          description="Dues are generated per building, so create a property before recording any."
+          action={<ButtonLink href="/properties/new">Add property</ButtonLink>}
+        />
       </div>
     );
   }
@@ -140,7 +146,10 @@ export default async function DuesPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-teal-deep">Dues</h1>
+      <PageHeader
+        title="Dues"
+        description="Monthly maintenance dues per flat, for the selected building and month."
+      />
       <PropertyPicker
         properties={properties}
         basePath="/finances/dues"
@@ -148,46 +157,64 @@ export default async function DuesPage({
       />
 
       {buildings?.length ? (
-        <form method="get" className="flex flex-wrap items-center gap-2">
+        <form method="get" className="flex flex-wrap items-end gap-2">
           <input type="hidden" name="property" value={propertyId} />
-          <select
-            name="building"
-            defaultValue={buildingId}
-            className="rounded-none border border-line px-2 py-1.5 text-sm"
-          >
-            {buildings.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="month"
-            name="period"
-            defaultValue={period}
-            className="rounded-none border border-line px-2 py-1.5 text-sm"
-          />
-          <button
-            type="submit"
-            className="label-mono border border-line bg-white px-3 py-1.5 text-[11px] hover:bg-paper"
-          >
+          <div>
+            <label
+              htmlFor="building"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
+              Building
+            </label>
+            <select
+              id="building"
+              name="building"
+              defaultValue={buildingId}
+              className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-teal-deep focus:outline-none focus:ring-2 focus:ring-teal-deep/40"
+            >
+              {buildings.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="period"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
+              Month
+            </label>
+            <input
+              id="period"
+              type="month"
+              name="period"
+              defaultValue={period}
+              className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-teal-deep focus:outline-none focus:ring-2 focus:ring-teal-deep/40"
+            />
+          </div>
+          <Button type="submit" variant="secondary">
             View
-          </button>
+          </Button>
         </form>
       ) : (
-        <p className="text-sm text-muted">
+        <p className="text-sm text-slate-500">
           No buildings yet — add one under Properties.
         </p>
       )}
 
       {buildingId && (
-        <div className="rounded-none border border-line bg-white p-4">
-          <GenerateDuesForm
-            propertyId={propertyId}
-            buildingId={buildingId}
-            period={period}
-          />
-        </div>
+        <Card>
+          <CardHeader title="Generate dues" />
+          <CardContent>
+            <GenerateDuesForm
+              propertyId={propertyId}
+              buildingId={buildingId}
+              period={period}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {dues.length > 0 && (
@@ -195,61 +222,57 @@ export default async function DuesPage({
           {dues.map((d) => {
             const status = dueStatus(d);
             return (
-              <div
-                key={d.id}
-                className="rounded-none border border-line bg-white p-4"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-lg font-bold text-ink">
-                      Flat {d.unit_number}
-                    </p>
-                    <p className="text-sm text-muted">
-                      {d.owners.length
-                        ? d.owners.join(",")
-                        : "No resident linked yet"}
-                    </p>
+              <Card key={d.id}>
+                <CardContent>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-lg font-bold text-slate-900">
+                        Flat {d.unit_number}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        {d.owners.length
+                          ? d.owners.join(",")
+                          : "No resident linked yet"}
+                      </p>
+                    </div>
+                    <DueStatusBadge status={status} />
                   </div>
-                  <span
-                    className={`shrink-0 rounded-sm px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[status]}`}
-                  >
-                    {status}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-muted">
-                  {formatPeriod(d.period)}
-                </p>
-                <div className="mt-2 flex items-center gap-4 text-sm">
-                  <span className="text-ink">
-                    Due{" "}
-                    <strong className="text-ink">
-                      {formatCurrency(d.amount_due)}
-                    </strong>
-                  </span>
-                  <span className="text-ink">
-                    Paid{" "}
-                    <strong className="text-ink">
-                      {formatCurrency(d.amount_paid)}
-                    </strong>
-                  </span>
-                </div>
-                <div className="mt-3 border-t border-line pt-3">
-                  <RecordPaymentForm
-                    dueId={d.id}
-                    amountDue={d.amount_due}
-                    amountPaid={d.amount_paid}
-                  />
-                </div>
-              </div>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {formatPeriod(d.period)}
+                  </p>
+                  <div className="mt-2 flex items-center gap-4 text-sm">
+                    <span className="text-slate-700">
+                      Due{" "}
+                      <strong className="text-slate-900">
+                        {formatCurrency(d.amount_due)}
+                      </strong>
+                    </span>
+                    <span className="text-slate-700">
+                      Paid{" "}
+                      <strong className="text-slate-900">
+                        {formatCurrency(d.amount_paid)}
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="mt-4 border-t border-slate-200 pt-4">
+                    <RecordPaymentForm
+                      dueId={d.id}
+                      amountDue={d.amount_due}
+                      amountPaid={d.amount_paid}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
       )}
       {buildingId && dues.length === 0 && (
-        <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
-          No dues generated for this month yet — click &quot;Generate dues&quot;
-          above.
-        </div>
+        <EmptyState
+          icon={ReceiptText}
+          title="No dues generated for this month yet"
+          description="Click “Generate dues” above to create this month’s dues for every flat in the building."
+        />
       )}
     </div>
   );

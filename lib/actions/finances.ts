@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/activity/log";
+import { accumulatePayment } from "@/lib/finance/dues";
 import {
   expenseCategorySchema,
   expenseSchema,
@@ -206,25 +207,51 @@ export async function recordDuePayment(
 
   const { data: due } = await supabase
     .from("monthly_dues")
-    .select("amount_due")
+    .select("id, property_id, unit_id, period, amount_due, amount_paid")
     .eq("id", parsed.data.dueId)
     .maybeSingle();
   if (!due) return { errors: { _form: "Due record not found." } };
 
+  // Accumulate — never overwrite. A second partial payment adds to the
+  // first instead of erasing it (P0-2).
+  const accumulated = accumulatePayment(
+    due.amount_paid,
+    due.amount_due,
+    parsed.data.amountPaid
+  );
+  if ("error" in accumulated) {
+    return { errors: { _form: accumulated.error } };
+  }
+  const newTotal = accumulated.newTotal;
+
   const { error } = await supabase
     .from("monthly_dues")
     .update({
-      amount_paid: parsed.data.amountPaid,
+      amount_paid: newTotal,
       payment_method: parsed.data.paymentMethod || null,
       notes: parsed.data.notes || null,
-      paid_at:
-        parsed.data.amountPaid >= due.amount_due
-          ? new Date().toISOString()
-          : null,
+      paid_at: newTotal >= due.amount_due ? new Date().toISOString() : null,
       recorded_by: user.id,
     })
     .eq("id", parsed.data.dueId);
   if (error) return { errors: { _form: "Could not update the payment." } };
+
+  // The DB trigger also logs 'dues.payment_recorded' on amount_paid
+  // change; this app-level entry records the incremental payment itself.
+  await logActivity({
+    userId: user.id,
+    action: "due.payment_recorded",
+    entityType: "monthly_due",
+    entityId: due.id,
+    metadata: {
+      property_id: due.property_id,
+      unit_id: due.unit_id,
+      period: due.period,
+      amount_paid_now: parsed.data.amountPaid,
+      amount_paid_total: newTotal,
+      amount_due: due.amount_due,
+    },
+  });
 
   revalidatePath("/finances/dues");
   return { success: true, message: "Payment recorded." };

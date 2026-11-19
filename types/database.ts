@@ -267,7 +267,21 @@ export type Database = {
       monthly_dues: TableDef<MonthlyDue>;
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      create_property_with_admin: {
+        Args: {
+          p_name: string;
+          p_address_line1: string;
+          p_address_line2: string | null;
+          p_city: string;
+          p_state: string | null;
+          p_postal_code: string | null;
+          p_country: string;
+          p_notes: string | null;
+        };
+        Returns: { id: string; name: string }[];
+      };
+    };
     Enums: {
       app_role: AppRole;
       request_status: RequestStatus;

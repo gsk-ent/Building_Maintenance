@@ -3,6 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import {
+  Banknote,
+  BarChart3,
+  Bell,
+  Building2,
+  ChevronDown,
+  ClipboardList,
+  CreditCard,
+  LayoutDashboard,
+  Menu,
+  Receipt,
+  ScrollText,
+  Settings,
+  User,
+  Users,
+  Wallet,
+  Wrench,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -16,6 +36,33 @@ export interface NavGroup {
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
+}
+
+/** Icon per route — nav is icon + label now, never emoji. */
+const ITEM_ICONS: Record<string, LucideIcon> = {
+  "/dashboard": LayoutDashboard,
+  "/maintenance": Wrench,
+  "/work-orders": ClipboardList,
+  "/finances/dues": Receipt,
+  "/finances/my-dues": Receipt,
+  "/finances/expenses": Banknote,
+  "/finances/payment-settings": CreditCard,
+  "/finances/reports": BarChart3,
+  "/properties": Building2,
+  "/admin/users": Users,
+  "/admin/activity": ScrollText,
+  "/profile": User,
+  "/notifications": Bell,
+};
+
+const GROUP_ICONS: Record<string, LucideIcon> = {
+  Finances: Wallet,
+  Manage: Settings,
+};
+
+function NavIcon({ href, className }: { href: string; className: string }) {
+  const Icon = ITEM_ICONS[href] ?? LayoutDashboard;
+  return <Icon className={className} aria-hidden="true" />;
 }
 
 export function DashboardNav({
@@ -61,24 +108,41 @@ export function DashboardNav({
     setMobileOpen(false);
   }, [pathname]);
 
+  // 14px labels, 44px touch targets, focus-visible rings — the old
+  // 10.5px Courier links failed all three.
   const linkClass = (active: boolean) =>
-    `label-mono block whitespace-nowrap border px-2.5 py-2 text-[10.5px] transition ${
+    `inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep ${
       active
-        ? "border-teal-deep bg-teal-deep text-white"
-        : "border-line bg-white text-muted hover:border-teal hover:text-teal-deep"
+        ? "bg-teal-deep/10 text-teal-deep"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+    }`;
+
+  const dropdownLinkClass = (active: boolean) =>
+    `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep ${
+      active
+        ? "bg-teal-deep/10 font-medium text-teal-deep"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     }`;
 
   return (
-    <header className="border-b-[3px] border-double border-teal-deep bg-paper">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
       <div
         ref={navRef}
-        className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3"
+        className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6"
       >
         <Link
           href="/dashboard"
-          className="shrink-0 text-base font-bold text-teal-deep"
+          className="flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep"
         >
-          🏢 <span className="hidden sm:inline">Building Maintenance</span>
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-deep text-white"
+          >
+            <Building2 className="h-5 w-5" />
+          </span>
+          <span className="text-base font-bold tracking-tight text-slate-900">
+            Building Maintenance
+          </span>
         </Link>
 
         {/* Desktop nav: a few primary links plus grouped dropdowns, so the
@@ -97,6 +161,7 @@ export function DashboardNav({
                   }
                   className={linkClass(isActive(pathname, item.href))}
                 >
+                  <NavIcon href={item.href} className="h-4 w-4" />
                   {item.label}
                 </Link>
               </li>
@@ -107,6 +172,7 @@ export function DashboardNav({
                 isActive(pathname, i.href)
               );
               const isOpen = openMenu === group.label;
+              const GroupIcon = GROUP_ICONS[group.label] ?? Settings;
               return (
                 <li key={group.label} className="relative">
                   <button
@@ -114,15 +180,17 @@ export function DashboardNav({
                     aria-expanded={isOpen}
                     aria-haspopup="true"
                     onClick={() => setOpenMenu(isOpen ? null : group.label)}
-                    className={`${linkClass(groupActive)} inline-flex items-center gap-1`}
+                    className={linkClass(groupActive)}
                   >
+                    <GroupIcon className="h-4 w-4" aria-hidden="true" />
                     {group.label}
-                    <span aria-hidden="true" className="text-[8px]">
-                      ▼
-                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      aria-hidden="true"
+                    />
                   </button>
                   {isOpen && (
-                    <ul className="absolute left-0 z-20 mt-1 min-w-48 border border-line bg-white py-1 shadow-[3px_3px_0_0_rgba(28,58,56,0.12)]">
+                    <ul className="absolute left-0 z-20 mt-1 min-w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
                       {group.items.map((item) => (
                         <li key={item.href}>
                           <Link
@@ -130,12 +198,11 @@ export function DashboardNav({
                             aria-current={
                               isActive(pathname, item.href) ? "page" : undefined
                             }
-                            className={`label-mono block px-3 py-2 text-[10.5px] ${
+                            className={dropdownLinkClass(
                               isActive(pathname, item.href)
-                                ? "bg-paper-2 text-teal-deep"
-                                : "text-muted hover:bg-paper-2 hover:text-teal-deep"
-                            }`}
+                            )}
                           >
+                            <NavIcon href={item.href} className="h-4 w-4" />
                             {item.label}
                           </Link>
                         </li>
@@ -155,42 +222,42 @@ export function DashboardNav({
             aria-expanded={openMenu === "__user"}
             aria-haspopup="true"
             onClick={() => setOpenMenu(openMenu === "__user" ? null : "__user")}
-            className="flex items-center gap-2 border border-line bg-white px-3 py-1.5 text-left hover:border-teal"
+            className="flex min-h-11 items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-left hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep"
           >
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-deep text-[11px] font-bold text-white"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-deep text-xs font-bold text-white"
             >
               {userName.charAt(0).toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block max-w-[12rem] truncate text-[13px] font-bold text-teal-deep">
+              <span className="block max-w-[12rem] truncate text-sm font-semibold text-slate-900">
                 {userName}
               </span>
-              <span className="label-mono block text-[9px]">{roleLabel}</span>
+              <span className="block text-xs text-slate-500">{roleLabel}</span>
             </span>
-            <span aria-hidden="true" className="text-[8px] text-muted">
-              ▼
-            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-slate-400 transition-transform ${openMenu === "__user" ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
           </button>
           {openMenu === "__user" && (
-            <div className="absolute right-0 z-20 mt-1 min-w-52 border border-line bg-white py-1 shadow-[3px_3px_0_0_rgba(28,58,56,0.12)]">
-              <Link
-                href="/profile"
-                className="label-mono block px-3 py-2 text-[10.5px] text-muted hover:bg-paper-2 hover:text-teal-deep"
-              >
+            <div className="absolute right-0 z-20 mt-1 min-w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+              <Link href="/profile" className={dropdownLinkClass(false)}>
+                <User className="h-4 w-4" aria-hidden="true" />
                 My profile
               </Link>
-              <Link
-                href="/notifications"
-                className="label-mono block px-3 py-2 text-[10.5px] text-muted hover:bg-paper-2 hover:text-teal-deep"
-              >
+              <Link href="/notifications" className={dropdownLinkClass(false)}>
+                <Bell className="h-4 w-4" aria-hidden="true" />
                 Notifications
               </Link>
-              <form action={signOutAction} className="border-t border-line">
+              <form
+                action={signOutAction}
+                className="border-t border-slate-200 pt-1.5"
+              >
                 <button
                   type="submit"
-                  className="label-mono block w-full px-3 py-2 text-left text-[10.5px] text-bad hover:bg-paper-2"
+                  className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700"
                 >
                   Sign out
                 </button>
@@ -201,26 +268,16 @@ export function DashboardNav({
 
         <button
           type="button"
-          className="shrink-0 border border-line p-2 text-teal-deep lg:hidden"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-deep lg:hidden"
           aria-expanded={mobileOpen}
           aria-label="Toggle navigation menu"
           onClick={() => setMobileOpen((v) => !v)}
         >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            {mobileOpen ? (
-              <path d="M6 6l12 12M18 6L6 18" />
-            ) : (
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            )}
-          </svg>
+          {mobileOpen ? (
+            <X className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          )}
         </button>
       </div>
 
@@ -228,20 +285,20 @@ export function DashboardNav({
       {mobileOpen && (
         <nav
           aria-label="Mobile navigation"
-          className="border-t border-line px-4 py-3 lg:hidden"
+          className="border-t border-slate-200 bg-white px-4 py-3 lg:hidden"
         >
-          <div className="mb-3 flex items-center gap-2 border-b border-line pb-3">
+          <div className="mb-3 flex items-center gap-3 border-b border-slate-200 pb-3">
             <span
               aria-hidden="true"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-deep text-sm font-bold text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-deep text-sm font-bold text-white"
             >
               {userName.charAt(0).toUpperCase()}
             </span>
             <span className="min-w-0">
-              <span className="block truncate text-sm font-bold text-teal-deep">
+              <span className="block truncate text-sm font-semibold text-slate-900">
                 {userName}
               </span>
-              <span className="label-mono block text-[9px]">{roleLabel}</span>
+              <span className="block text-xs text-slate-500">{roleLabel}</span>
             </span>
           </div>
 
@@ -255,6 +312,7 @@ export function DashboardNav({
                   }
                   className={linkClass(isActive(pathname, item.href))}
                 >
+                  <NavIcon href={item.href} className="h-4 w-4" />
                   {item.label}
                 </Link>
               </li>
@@ -262,10 +320,8 @@ export function DashboardNav({
           </ul>
 
           {groups.map((group) => (
-            <div key={group.label} className="mt-3">
-              <p className="label-mono mb-1 text-[9px] text-rust">
-                {group.label}
-              </p>
+            <div key={group.label} className="mt-4">
+              <p className="label-mono mb-2 px-1">{group.label}</p>
               <ul className="flex flex-col gap-1">
                 {group.items.map((item) => (
                   <li key={item.href}>
@@ -276,6 +332,7 @@ export function DashboardNav({
                       }
                       className={linkClass(isActive(pathname, item.href))}
                     >
+                      <NavIcon href={item.href} className="h-4 w-4" />
                       {item.label}
                     </Link>
                   </li>
@@ -284,11 +341,11 @@ export function DashboardNav({
             </div>
           ))}
 
-          <div className="mt-3 border-t border-line pt-3">
+          <div className="mt-4 border-t border-slate-200 pt-3">
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="label-mono w-full border border-line bg-white px-3 py-2 text-[10.5px] text-bad"
+                className="flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700"
               >
                 Sign out
               </button>

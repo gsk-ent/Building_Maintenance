@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/permissions";
 import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/lib/actions/notifications";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { buttonClasses } from "@/components/ui/button";
 
 export const metadata = { title: "Notifications — Building Maintenance" };
 
@@ -23,29 +27,32 @@ export default async function NotificationsPage() {
   const hasUnread = notifications?.some((n) => !n.read_at);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-teal-deep">Notifications</h1>
-        {hasUnread && (
-          <form action={markAllNotificationsRead}>
-            <button
-              type="submit"
-              className="label-mono border border-line px-3 py-1.5 text-[11px] font-medium text-ink hover:bg-paper"
-            >
-              Mark all read
-            </button>
-          </form>
-        )}
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Notifications"
+        description="Updates about your requests, work orders and properties."
+        actions={
+          hasUnread ? (
+            <form action={markAllNotificationsRead}>
+              <button
+                type="submit"
+                className={buttonClasses("secondary", "sm")}
+              >
+                Mark all read
+              </button>
+            </form>
+          ) : undefined
+        }
+      />
       {notifications?.length ? (
-        <ul className="divide-y divide-line rounded-none border border-line bg-white">
+        <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white shadow-sm">
           {notifications.map((n) => (
             <li
               key={n.id}
-              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${!n.read_at ? "bg-gold/10" : ""}`}
+              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 ${!n.read_at ? "bg-amber-50" : ""}`}
             >
-              <div>
-                <p className="text-sm font-medium text-ink">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-slate-900">
                   {n.link ? (
                     <Link href={n.link} className="hover:underline">
                       {n.title}
@@ -54,8 +61,10 @@ export default async function NotificationsPage() {
                     n.title
                   )}
                 </p>
-                {n.body && <p className="text-xs text-muted">{n.body}</p>}
-                <p className="text-xs text-muted">
+                {n.body && (
+                  <p className="mt-0.5 text-sm text-slate-500">{n.body}</p>
+                )}
+                <p className="mt-0.5 text-xs text-slate-500">
                   {new Date(n.created_at).toLocaleString()}
                 </p>
               </div>
@@ -64,7 +73,7 @@ export default async function NotificationsPage() {
                   <input type="hidden" name="notificationId" value={n.id} />
                   <button
                     type="submit"
-                    className="rounded-none border border-line px-3 py-1.5 text-xs font-medium text-ink hover:bg-paper"
+                    className={buttonClasses("secondary", "sm")}
                   >
                     Mark read
                   </button>
@@ -74,9 +83,11 @@ export default async function NotificationsPage() {
           ))}
         </ul>
       ) : (
-        <div className="rounded-none border border-dashed border-line bg-white p-8 text-center text-sm text-muted">
-          No notifications yet.
-        </div>
+        <EmptyState
+          icon={Bell}
+          title="No notifications yet"
+          description="We'll let you know here when something about your requests needs your attention."
+        />
       )}
     </div>
   );
