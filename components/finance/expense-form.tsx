@@ -66,7 +66,7 @@ export function ExpenseForm({
         rows={2}
         error={state.errors?.description}
       />
-      <SubmitButton variant="secondary">Add expense</SubmitButton>
+      <SubmitButton>Add expense</SubmitButton>
     </form>
   );
 }

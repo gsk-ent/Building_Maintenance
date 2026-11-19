@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Building2 } from "lucide-react";
 import {
   DashboardNav,
   type NavGroup,
@@ -32,9 +33,15 @@ export default async function DashboardLayout({
   if (needsAssignment(user)) {
     return (
       <div className="flex min-h-screen flex-col bg-paper">
-        <header className="border-b-[3px] border-double border-teal-deep bg-paper px-4 py-3">
-          <span className="text-base font-bold text-teal-deep">
-            🏢 Building Maintenance
+        <header className="border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <span className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900">
+            <span
+              aria-hidden="true"
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-deep text-white"
+            >
+              <Building2 className="h-4.5 w-4.5" />
+            </span>
+            Building Maintenance
           </span>
         </header>
         <main className="flex flex-1 items-center justify-center px-4 py-10">
@@ -92,7 +99,7 @@ export default async function DashboardLayout({
         roleLabel={primaryRoleLabel(user)}
         signOutAction={signOut}
       />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
         {children}
       </main>
       <SiteFooter />

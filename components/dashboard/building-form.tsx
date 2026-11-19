@@ -15,7 +15,7 @@ export function BuildingForm({ propertyId }: { propertyId: string }) {
     {}
   );
   return (
-    <form action={action} className="space-y-3" noValidate>
+    <form action={action} className="space-y-4" noValidate>
       <input type="hidden" name="propertyId" value={propertyId} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />

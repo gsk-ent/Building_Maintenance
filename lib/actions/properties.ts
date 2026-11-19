@@ -42,39 +42,33 @@ export async function createProperty(
   if (!user) return { errors: { _form: "Not signed in." } };
 
   const d = parsed.data;
-  const { data: property, error } = await supabase
-    .from("properties")
-    .insert({
-      name: d.name,
-      address_line1: d.addressLine1,
-      address_line2: d.addressLine2 || null,
-      city: d.city,
-      state: d.state || null,
-      postal_code: d.postalCode || null,
-      country: d.country,
-      notes: d.notes || null,
-      created_by: user.id,
-    })
-    .select("id, name")
-    .single();
+  // Atomic creation (migration 013): the property row and the creator's
+  // first 'admin' assignment are written in a single transaction by the
+  // SECURITY DEFINER function. The old two-step version left properties
+  // with zero admins when the second insert failed.
+  const { data: created, error } = await supabase.rpc(
+    "create_property_with_admin",
+    {
+      p_name: d.name,
+      p_address_line1: d.addressLine1,
+      p_address_line2: d.addressLine2 || null,
+      p_city: d.city,
+      p_state: d.state || null,
+      p_postal_code: d.postalCode || null,
+      p_country: d.country,
+      p_notes: d.notes || null,
+    }
+  );
+  const property = created?.[0];
 
-  if (error) {
-    // RLS denial or constraint violation — never expose raw SQL errors.
+  if (error || !property) {
+    // RLS denial, role check, or constraint violation — never expose raw SQL errors.
     return {
       errors: {
         _form: "Could not create the property. Check your permissions.",
       },
     };
   }
-
-  // The creator becomes the building's first admin — every building
-  // always has at least one (enforced in the database too), and only an
-  // existing building admin can grant admin access to anyone else.
-  await supabase.from("property_user_assignments").insert({
-    property_id: property.id,
-    user_id: user.id,
-    relationship: "admin",
-  });
 
   await logActivity({
     userId: user.id,

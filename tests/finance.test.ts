@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  accumulatePayment,
   dueStatus,
   outstandingBalance,
   formatPeriod,
@@ -11,6 +12,35 @@ import {
   expenseSchema,
   periodSchema,
 } from "@/lib/validation";
+
+describe("accumulatePayment", () => {
+  it("adds a new payment to what was already paid", () => {
+    expect(accumulatePayment(400, 1000, 300)).toEqual({ newTotal: 700 });
+  });
+  it("allows paying the exact remaining balance", () => {
+    expect(accumulatePayment(400, 1000, 600)).toEqual({ newTotal: 1000 });
+  });
+  it("rejects a payment that would exceed the amount due", () => {
+    const result = accumulatePayment(400, 1000, 700);
+    expect(result).toHaveProperty("error");
+    expect((result as { error: string }).error).toMatch(/exceed/);
+  });
+  it("rejects zero and negative payments", () => {
+    expect(accumulatePayment(0, 1000, 0)).toHaveProperty("error");
+    expect(accumulatePayment(0, 1000, -50)).toHaveProperty("error");
+  });
+  it("does not erase the first payment when a second one arrives", () => {
+    // Regression test for P0-2: the old action overwrote amount_paid,
+    // so a second partial payment erased the first.
+    const first = accumulatePayment(0, 1000, 400);
+    expect(first).toEqual({ newTotal: 400 });
+    if (!("error" in first)) {
+      expect(accumulatePayment(first.newTotal, 1000, 300)).toEqual({
+        newTotal: 700,
+      });
+    }
+  });
+});
 
 describe("dueStatus", () => {
   it("classifies paid/partial/pending correctly", () => {

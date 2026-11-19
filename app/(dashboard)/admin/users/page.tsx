@@ -1,9 +1,16 @@
 import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, isAdmin } from "@/lib/permissions";
 import { RoleBadge } from "@/components/admin/role-badge";
 import { GrantRoleForm } from "@/components/admin/grant-role-form";
 import type { AppRole } from "@/types/database";
+import { formatStatus } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Field } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 
 export const metadata = { title: "Manage users — Building Maintenance" };
 
@@ -77,29 +84,26 @@ export default async function ManageUsersPage({
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-teal-deep">Manage users</h1>
-        <p className="text-sm text-muted">
-          Platform-wide roles. To link someone to a specific building or flat,
-          use that property&apos;s Members panel instead.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Manage users"
+        description="Platform-wide roles. To link someone to a specific building or flat, use that property’s Members panel instead."
+      />
 
-      <form method="get" className="flex gap-2">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="Search by email…"
-          className="w-full max-w-xs label-mono border border-line px-3 py-1.5 text-[11px]"
-        />
-        <button
-          type="submit"
-          className="label-mono border border-line bg-white px-3 py-1.5 text-[11px] hover:bg-paper"
-        >
+      <form method="get" className="flex items-end gap-2">
+        <div className="w-full max-w-xs">
+          <Field
+            label="Search by email"
+            name="q"
+            type="search"
+            required={false}
+            defaultValue={q ?? ""}
+            placeholder="Search by email…"
+          />
+        </div>
+        <Button type="submit" variant="secondary">
           Search
-        </button>
+        </Button>
       </form>
 
       <div className="space-y-3">
@@ -107,69 +111,63 @@ export default async function ManageUsersPage({
           const roles = rolesByUser.get(p.user_id) ?? [];
           const myAssignments = assignmentsByUser.get(p.user_id) ?? [];
           return (
-            <div
-              key={p.user_id}
-              className="rounded-none border border-line bg-white p-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-medium text-ink">
-                    {p.full_name || "(no name set)"}
-                  </p>
-                  <p className="text-sm text-muted">{p.email}</p>
+            <Card key={p.user_id}>
+              <CardContent>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-slate-900">
+                      {p.full_name || "(no name set)"}
+                    </p>
+                    <p className="text-sm text-slate-500">{p.email}</p>
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {p.last_login_at
+                      ? `Last seen ${new Date(p.last_login_at).toLocaleDateString()}`
+                      : "Never signed in"}
+                  </span>
                 </div>
-                <span className="text-xs text-muted">
-                  {p.last_login_at
-                    ? `Last seen ${new Date(p.last_login_at).toLocaleDateString()}`
-                    : "Never signed in"}
-                </span>
-              </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {roles.length ? (
-                  roles.map((r) => (
-                    <RoleBadge key={r} userId={p.user_id} role={r} />
-                  ))
-                ) : (
-                  <span className="text-xs text-muted">No platform role</span>
-                )}
-                <GrantRoleForm userId={p.user_id} />
-              </div>
-
-              {myAssignments.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line pt-3">
-                  {myAssignments.map((a, i) => (
-                    <span
-                      key={i}
-                      className="rounded-sm bg-paper px-2 py-0.5 text-xs text-ink"
-                    >
-                      {propertyName.get(a!.property_id) ?? "Unknown building"} ·{" "}
-                      {ROLE_LABELS_FALLBACK(a!.relationship)}
-                      {a!.unit_id
-                        ? ` · Unit ${unitNumber.get(a!.unit_id) ?? ""}`
-                        : ""}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {roles.length ? (
+                    roles.map((r) => (
+                      <RoleBadge key={r} userId={p.user_id} role={r} />
+                    ))
+                  ) : (
+                    <span className="text-xs text-slate-500">
+                      No platform role
                     </span>
-                  ))}
+                  )}
+                  <GrantRoleForm userId={p.user_id} />
                 </div>
-              )}
-            </div>
+
+                {myAssignments.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5 border-t border-slate-200 pt-3">
+                    {myAssignments.map((a, i) => (
+                      <span
+                        key={i}
+                        className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+                      >
+                        {propertyName.get(a!.property_id) ?? "Unknown building"}{" "}
+                        · {formatStatus(a!.relationship)}
+                        {a!.unit_id
+                          ? ` · Unit ${unitNumber.get(a!.unit_id) ?? ""}`
+                          : ""}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           );
         })}
         {!profiles?.length && (
-          <p className="text-sm text-muted">No users found.</p>
+          <EmptyState
+            icon={Users}
+            title="No users found"
+            description="Try a different search."
+          />
         )}
       </div>
     </div>
   );
-}
-
-function ROLE_LABELS_FALLBACK(relationship: string): string {
-  const labels: Record<string, string> = {
-    admin: "Admin",
-    manager: "Manager",
-    resident: "Resident",
-    technician: "Technician",
-    vendor: "Vendor",
-  };
-  return labels[relationship] ?? relationship;
 }

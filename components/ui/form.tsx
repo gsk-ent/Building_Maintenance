@@ -1,10 +1,11 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { buttonClasses } from "@/components/ui/button";
 
-const LABEL = "label-mono mb-1 block text-[11px]";
+const LABEL = "mb-1 block text-sm font-medium text-slate-700";
 const INPUT =
-  "w-full rounded-none border border-line bg-paper-2 px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-teal-deep focus:outline-none focus:ring-1 focus:ring-teal-deep";
+  "w-full min-h-11 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-teal-deep focus:outline-none focus:ring-2 focus:ring-teal-deep/40";
 
 export function Field({
   label,
@@ -15,6 +16,9 @@ export function Field({
   required = true,
   defaultValue,
   placeholder,
+  step,
+  min,
+  max,
 }: {
   label: string;
   name: string;
@@ -24,6 +28,9 @@ export function Field({
   required?: boolean;
   defaultValue?: string;
   placeholder?: string;
+  step?: string;
+  min?: string;
+  max?: string;
 }) {
   const errorId = `${name}-error`;
   return (
@@ -39,6 +46,9 @@ export function Field({
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         placeholder={placeholder}
+        step={step}
+        min={min}
+        max={max}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
         className={INPUT}
@@ -99,6 +109,7 @@ export function Select({
   required = true,
   defaultValue,
   children,
+  wrapperClassName = "",
 }: {
   label: string;
   name: string;
@@ -106,9 +117,11 @@ export function Select({
   required?: boolean;
   defaultValue?: string;
   children: React.ReactNode;
+  wrapperClassName?: string;
 }) {
+  const errorId = `${name}-error`;
   return (
-    <div>
+    <div className={wrapperClassName}>
       <label htmlFor={name} className={LABEL}>
         {label}
       </label>
@@ -118,12 +131,13 @@ export function Select({
         required={required}
         defaultValue={defaultValue}
         aria-invalid={!!error}
+        aria-describedby={error ? errorId : undefined}
         className={INPUT}
       >
         {children}
       </select>
       {error && (
-        <p role="alert" className="mt-1 text-sm text-bad">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-bad">
           {error}
         </p>
       )}
@@ -139,17 +153,15 @@ export function SubmitButton({
   variant?: "primary" | "danger" | "secondary";
 }) {
   const { pending } = useFormStatus();
-  const styles =
-    variant === "primary"
-      ? "border border-teal-deep bg-teal-deep text-white hover:bg-teal"
-      : variant === "danger"
-        ? "border border-bad bg-bad text-white hover:opacity-90"
-        : "border border-dashed border-teal bg-transparent text-teal-deep hover:bg-paper-2";
   return (
     <button
       type="submit"
       disabled={pending}
-      className={`label-mono inline-flex w-full items-center justify-center rounded-none px-4 py-2.5 text-[11px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal disabled:opacity-60 ${styles}`}
+      className={buttonClasses(
+        variant === "secondary" ? "secondary" : variant,
+        "md",
+        "w-full"
+      )}
     >
       {pending ? "Please wait…" : children}
     </button>
@@ -161,7 +173,7 @@ export function FormError({ message }: { message?: string }) {
   return (
     <div
       role="alert"
-      className="border border-bad bg-bad/10 px-3 py-2 text-sm text-bad"
+      className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
     >
       {message}
     </div>
@@ -173,7 +185,7 @@ export function FormSuccess({ message }: { message?: string }) {
   return (
     <div
       role="status"
-      className="border border-good bg-good/10 px-3 py-2 text-sm text-good"
+      className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700"
     >
       {message}
     </div>

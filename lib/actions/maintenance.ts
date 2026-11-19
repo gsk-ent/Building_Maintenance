@@ -111,7 +111,7 @@ export async function updateRequestStatus(formData: FormData): Promise<void> {
 
   // RLS decides whether this user may update. The DB trigger records the
   // status-change audit event automatically.
-  await supabase
+  const { data: updated, error } = await supabase
     .from("maintenance_requests")
     .update({
       status: status.data,
@@ -119,7 +119,12 @@ export async function updateRequestStatus(formData: FormData): Promise<void> {
         ? new Date().toISOString()
         : null,
     })
-    .eq("id", id.data);
+    .eq("id", id.data)
+    .select("id");
+
+  // P0-4: an RLS-denied update (or a missing row) must not produce a
+  // "closed" audit log or a revalidation that pretends it succeeded.
+  if (error || !updated?.length) return;
 
   if (status.data === "closed") {
     await logActivity({
@@ -140,10 +145,22 @@ export async function assignRequest(formData: FormData): Promise<void> {
   if (!id.success || !assignee.success) return;
 
   const supabase = await createClient();
-  await supabase
+  // P0-4: previously there was no auth check at all here, so anyone
+  // could trigger an admin-client notification to an arbitrary UUID.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { data: updated, error } = await supabase
     .from("maintenance_requests")
     .update({ assigned_to: assignee.data, status: "triaged" })
-    .eq("id", id.data);
+    .eq("id", id.data)
+    .select("id");
+
+  // Only notify when the assignment actually landed — an RLS-denied
+  // update must not spam the assignee with a notification.
+  if (error || !updated?.length) return;
 
   // Audit trail handled by DB trigger; also notify the assignee.
   try {

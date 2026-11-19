@@ -25,9 +25,7 @@ export function GenerateDuesForm({
       <input type="hidden" name="period" value={period} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
-      <SubmitButton variant="secondary">
-        Generate dues for this month
-      </SubmitButton>
+      <SubmitButton>Generate dues for this month</SubmitButton>
     </form>
   );
 }

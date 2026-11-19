@@ -1,9 +1,22 @@
 import { notFound, redirect } from "next/navigation";
+import { BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { canViewReports, getCurrentUser } from "@/lib/permissions";
 import { PrintButton } from "@/components/finance/print-button";
 import { Bar } from "@/components/finance/bar";
 import { dueStatus, formatCurrency, formatPeriod } from "@/lib/finance/dues";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { DueStatusBadge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "@/components/ui/table";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata = { title: "Report — Building Maintenance" };
 
@@ -49,7 +62,16 @@ export default async function ReportPage({
       : properties?.[0]?.id;
   const property = properties?.find((p) => p.id === propertyId);
   if (!propertyId || !property) {
-    return <p className="text-sm text-muted">No property found.</p>;
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <PageHeader title={REPORT_TITLES[type]} />
+        <EmptyState
+          icon={BarChart3}
+          title="No property found"
+          description="Add a property first to view reports."
+        />
+      </div>
+    );
   }
 
   const period = /^\d{4}-\d{2}$/.test(sp.period ?? "")
@@ -59,42 +81,43 @@ export default async function ReportPage({
   const generatedAt = new Date().toLocaleString();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-3xl space-y-6">
       <style>{`@media print { .no-print { display: none !important; } body { background: white; } }`}</style>
-      <div className="no-print flex items-center justify-between">
-        <h1 className="text-xl font-bold text-teal-deep">
-          {REPORT_TITLES[type]}
-        </h1>
-        <PrintButton />
+      <div className="no-print">
+        <PageHeader title={REPORT_TITLES[type]} actions={<PrintButton />} />
       </div>
 
-      <div className="rounded-none border border-line bg-white p-6 print:border-0 print:shadow-none">
-        <header className="mb-4 border-b border-line pb-3">
-          <h2 className="text-lg font-bold text-ink">{property.name}</h2>
-          <p className="text-sm text-muted">
-            {REPORT_TITLES[type]} · Generated {generatedAt}
-          </p>
-        </header>
+      <Card className="print:border-0 print:shadow-none">
+        <CardContent className="py-6">
+          <header className="mb-4 border-b border-slate-200 pb-3">
+            <h2 className="text-lg font-bold text-slate-900">
+              {property.name}
+            </h2>
+            <p className="text-sm text-slate-500">
+              {REPORT_TITLES[type]} · Generated {generatedAt}
+            </p>
+          </header>
 
-        {type === "collection" && (
-          <CollectionReport
-            propertyId={propertyId}
-            periodDate={periodDate}
-            period={period}
-          />
-        )}
-        {type === "dues" && <OutstandingDuesReport propertyId={propertyId} />}
-        {type === "expenses" && (
-          <ExpenseReport
-            propertyId={propertyId}
-            periodDate={periodDate}
-            period={period}
-          />
-        )}
-        {type === "income-vs-expense" && (
-          <IncomeVsExpenseReport propertyId={propertyId} />
-        )}
-      </div>
+          {type === "collection" && (
+            <CollectionReport
+              propertyId={propertyId}
+              periodDate={periodDate}
+              period={period}
+            />
+          )}
+          {type === "dues" && <OutstandingDuesReport propertyId={propertyId} />}
+          {type === "expenses" && (
+            <ExpenseReport
+              propertyId={propertyId}
+              periodDate={periodDate}
+              period={period}
+            />
+          )}
+          {type === "income-vs-expense" && (
+            <IncomeVsExpenseReport propertyId={propertyId} />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -178,51 +201,56 @@ async function CollectionReport({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-ink">Period: {formatPeriod(period)}</p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs uppercase text-muted">
-              <th className="py-1">Flat</th>
-              <th className="py-1">Owner</th>
-              <th className="py-1">Due</th>
-              <th className="py-1">Paid</th>
-              <th className="py-1">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b border-line">
-                <td className="py-1 font-medium">
-                  {unitNumber.get(r.unit_id)}
-                </td>
-                <td className="py-1 text-ink">
-                  {(owners.get(r.unit_id) ?? []).join(",") || "—"}
-                </td>
-                <td className="py-1">{formatCurrency(r.amount_due)}</td>
-                <td className="py-1">{formatCurrency(r.amount_paid)}</td>
-                <td className="py-1 capitalize">{r.status}</td>
-              </tr>
-            ))}
-            {!rows.length && (
-              <tr>
-                <td colSpan={5} className="py-4 text-center text-muted">
-                  No dues generated for this month.
-                </td>
-              </tr>
-            )}
-          </tbody>
-          <tfoot>
-            <tr className="border-t-2 border-line font-semibold">
-              <td className="py-2">Total</td>
-              <td />
-              <td className="py-2">{formatCurrency(totalDue)}</td>
-              <td className="py-2">{formatCurrency(totalPaid)}</td>
-              <td />
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      <p className="text-sm text-slate-700">Period: {formatPeriod(period)}</p>
+      <Table caption={`Collection status for ${formatPeriod(period)}`}>
+        <TableHead>
+          <TableHeaderCell>Flat</TableHeaderCell>
+          <TableHeaderCell>Owner</TableHeaderCell>
+          <TableHeaderCell>Due</TableHeaderCell>
+          <TableHeaderCell>Paid</TableHeaderCell>
+          <TableHeaderCell>Status</TableHeaderCell>
+        </TableHead>
+        <TableBody>
+          {rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell className="font-medium text-slate-900">
+                {unitNumber.get(r.unit_id)}
+              </TableCell>
+              <TableCell>
+                {(owners.get(r.unit_id) ?? []).join(",") || "—"}
+              </TableCell>
+              <TableCell>{formatCurrency(r.amount_due)}</TableCell>
+              <TableCell>{formatCurrency(r.amount_paid)}</TableCell>
+              <TableCell>
+                <DueStatusBadge status={r.status} />
+              </TableCell>
+            </TableRow>
+          ))}
+          {!rows.length && (
+            <TableRow>
+              <TableCell
+                colSpan={5}
+                className="py-4 text-center text-slate-500"
+              >
+                No dues generated for this month.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+        <tfoot>
+          <tr className="border-t-2 border-slate-200 font-semibold">
+            <TableCell className="py-2 text-slate-900">Total</TableCell>
+            <TableCell>{""}</TableCell>
+            <TableCell className="py-2 text-slate-900">
+              {formatCurrency(totalDue)}
+            </TableCell>
+            <TableCell className="py-2 text-slate-900">
+              {formatCurrency(totalPaid)}
+            </TableCell>
+            <TableCell>{""}</TableCell>
+          </tr>
+        </tfoot>
+      </Table>
     </div>
   );
 }
@@ -251,44 +279,49 @@ async function OutstandingDuesReport({ propertyId }: { propertyId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs uppercase text-muted">
-              <th className="py-1">Flat</th>
-              <th className="py-1">Owner</th>
-              <th className="py-1">Outstanding balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([unitId, bal]) => (
-              <tr key={unitId} className="border-b border-line">
-                <td className="py-1 font-medium">{unitNumber.get(unitId)}</td>
-                <td className="py-1 text-ink">
-                  {(owners.get(unitId) ?? []).join(",") || "—"}
-                </td>
-                <td className="py-1 text-bad">{formatCurrency(bal)}</td>
-              </tr>
-            ))}
-            {!rows.length && (
-              <tr>
-                <td colSpan={3} className="py-4 text-center text-muted">
-                  No outstanding dues — everyone is paid up.
-                </td>
-              </tr>
-            )}
-          </tbody>
-          {rows.length > 0 && (
-            <tfoot>
-              <tr className="border-t-2 border-line font-semibold">
-                <td className="py-2">Total outstanding</td>
-                <td />
-                <td className="py-2 text-bad">{formatCurrency(total)}</td>
-              </tr>
-            </tfoot>
+      <Table caption="Outstanding dues by unit">
+        <TableHead>
+          <TableHeaderCell>Flat</TableHeaderCell>
+          <TableHeaderCell>Owner</TableHeaderCell>
+          <TableHeaderCell>Outstanding balance</TableHeaderCell>
+        </TableHead>
+        <TableBody>
+          {rows.map(([unitId, bal]) => (
+            <TableRow key={unitId}>
+              <TableCell className="font-medium text-slate-900">
+                {unitNumber.get(unitId)}
+              </TableCell>
+              <TableCell>
+                {(owners.get(unitId) ?? []).join(",") || "—"}
+              </TableCell>
+              <TableCell className="text-bad">{formatCurrency(bal)}</TableCell>
+            </TableRow>
+          ))}
+          {!rows.length && (
+            <TableRow>
+              <TableCell
+                colSpan={3}
+                className="py-4 text-center text-slate-500"
+              >
+                No outstanding dues — everyone is paid up.
+              </TableCell>
+            </TableRow>
           )}
-        </table>
-      </div>
+        </TableBody>
+        {rows.length > 0 && (
+          <tfoot>
+            <tr className="border-t-2 border-slate-200 font-semibold">
+              <TableCell className="py-2 text-slate-900">
+                Total outstanding
+              </TableCell>
+              <TableCell>{""}</TableCell>
+              <TableCell className="py-2 text-bad">
+                {formatCurrency(total)}
+              </TableCell>
+            </tr>
+          </tfoot>
+        )}
+      </Table>
     </div>
   );
 }
@@ -336,40 +369,43 @@ async function ExpenseReport({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-ink">Period: {period}</p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs uppercase text-muted">
-              <th className="py-1">Category</th>
-              <th className="py-1">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([name, amt]) => (
-              <tr key={name} className="border-b border-line">
-                <td className="py-1 font-medium">{name}</td>
-                <td className="py-1">{formatCurrency(amt)}</td>
-              </tr>
-            ))}
-            {!rows.length && (
-              <tr>
-                <td colSpan={2} className="py-4 text-center text-muted">
-                  No expenses recorded for this month.
-                </td>
-              </tr>
-            )}
-          </tbody>
-          {rows.length > 0 && (
-            <tfoot>
-              <tr className="border-t-2 border-line font-semibold">
-                <td className="py-2">Total</td>
-                <td className="py-2">{formatCurrency(total)}</td>
-              </tr>
-            </tfoot>
+      <p className="text-sm text-slate-700">Period: {period}</p>
+      <Table caption={`Expenses by category for ${period}`}>
+        <TableHead>
+          <TableHeaderCell>Category</TableHeaderCell>
+          <TableHeaderCell>Amount</TableHeaderCell>
+        </TableHead>
+        <TableBody>
+          {rows.map(([name, amt]) => (
+            <TableRow key={name}>
+              <TableCell className="font-medium text-slate-900">
+                {name}
+              </TableCell>
+              <TableCell>{formatCurrency(amt)}</TableCell>
+            </TableRow>
+          ))}
+          {!rows.length && (
+            <TableRow>
+              <TableCell
+                colSpan={2}
+                className="py-4 text-center text-slate-500"
+              >
+                No expenses recorded for this month.
+              </TableCell>
+            </TableRow>
           )}
-        </table>
-      </div>
+        </TableBody>
+        {rows.length > 0 && (
+          <tfoot>
+            <tr className="border-t-2 border-slate-200 font-semibold">
+              <TableCell className="py-2 text-slate-900">Total</TableCell>
+              <TableCell className="py-2 text-slate-900">
+                {formatCurrency(total)}
+              </TableCell>
+            </tr>
+          </tfoot>
+        )}
+      </Table>
     </div>
   );
 }
@@ -416,25 +452,49 @@ async function IncomeVsExpenseReport({ propertyId }: { propertyId: string }) {
   return (
     <div className="space-y-6">
       {months.length ? (
-        months.map((m) => (
-          <div key={m} className="space-y-1">
-            <p className="text-xs font-semibold uppercase text-muted">
-              {formatPeriod(m)}
-            </p>
-            <Bar
-              label="Income"
-              value={Math.round(incomeByMonth.get(m) ?? 0)}
-              max={max}
-            />
-            <Bar
-              label="Expense"
-              value={Math.round(expenseByMonth.get(m) ?? 0)}
-              max={max}
-            />
-          </div>
-        ))
+        <>
+          <p className="flex items-center gap-4 text-sm text-slate-700">
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full bg-teal-deep"
+                aria-hidden="true"
+              />
+              Income
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full bg-rust"
+                aria-hidden="true"
+              />
+              Expense
+            </span>
+          </p>
+          {months.map((m) => (
+            <div key={m} className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {formatPeriod(m)}
+              </p>
+              <Bar
+                label="Income"
+                value={Math.round(incomeByMonth.get(m) ?? 0)}
+                max={max}
+                tone="income"
+              />
+              <Bar
+                label="Expense"
+                value={Math.round(expenseByMonth.get(m) ?? 0)}
+                max={max}
+                tone="expense"
+              />
+            </div>
+          ))}
+        </>
       ) : (
-        <p className="text-sm text-muted">No income or expense data yet.</p>
+        <EmptyState
+          icon={BarChart3}
+          title="No income or expense data yet"
+          description="Once dues are paid and expenses are recorded, the monthly comparison will appear here."
+        />
       )}
     </div>
   );

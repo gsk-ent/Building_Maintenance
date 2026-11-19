@@ -26,7 +26,7 @@ export function MemberForm({
     {}
   );
   return (
-    <form action={action} className="space-y-3" noValidate>
+    <form action={action} className="space-y-4" noValidate>
       <input type="hidden" name="propertyId" value={propertyId} />
       <FormError message={state.errors?._form} />
       <FormSuccess message={state.success ? state.message : undefined} />
@@ -36,7 +36,7 @@ export function MemberForm({
         type="email"
         error={state.errors?.email}
       />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Select
           label="Role"
           name="relationship"
@@ -66,7 +66,7 @@ export function MemberForm({
           ))}
         </Select>
       </div>
-      <p className="text-xs text-muted">
+      <p className="text-sm text-slate-500">
         They must already have an account (signed up or created in Supabase
         Auth) — this links their existing account to the property.
         {canGrantAdmin

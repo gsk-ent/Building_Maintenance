@@ -1,4 +1,5 @@
 import { signInWithGoogle } from "@/lib/auth/actions";
+import { buttonClasses } from "@/components/ui/button";
 
 export function GoogleButton({ next }: { next?: string }) {
   return (
@@ -6,7 +7,7 @@ export function GoogleButton({ next }: { next?: string }) {
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <button
         type="submit"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-none border border-line bg-white px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-paper-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+        className={buttonClasses("secondary", "md", "w-full")}
       >
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24">
           <path
